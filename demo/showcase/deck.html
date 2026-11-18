@@ -14,6 +14,7 @@
 <script src="../../themes/pixelpine/theme.js" defer></script>
 <script src="../../themes/train/theme.js" defer></script>
 <script src="../../themes/scope/theme.js" defer></script>
+<script src="../../themes/feeder/theme.js" defer></script>
 <script src="../../engine.js" defer></script>
 <style>
   /* neutral core look (info slides) */
@@ -61,6 +62,14 @@
   section.sc .kicker { color: #4fe3a0; }
   section.sc .label { color: #3f5047; }
   section.sc.dark .label { color: #9fbfae; }
+  section.fd { font-family: 'Nunito Sans', Arial, sans-serif; background: #f5f0e6; color: #16271f; }
+  section.fd.dark { background: #13221b; color: #f5f0e6; }
+  section.fd h1, section.fd h2 { font-family: Nunito, Arial, sans-serif; font-weight: 800; letter-spacing: 0; }
+  section.fd .kicker { color: #f2b632; }
+  section.fd .label { color: #4a5a50; }
+  section.fd.dark .label { color: #b9c6bd; }
+  section.fd .big { font-family: Nunito, Arial, sans-serif; font-weight: 800; color: #8a4a36; }
+  section.fd .card { background: #fffcf6; border-color: #e2d9c6; }
 </style>
 </head>
 <body data-accent="#9fb3c8" data-lang="en">
@@ -326,6 +335,37 @@
   </svg>
   <p class="label">data-fx="trace" (scope) on an &lt;svg&gt;: every stroked path draws itself, fills and text fade in after. Came in with scope-sweep. A real talk with this theme and stepped process animations: demo/Impedance-demo.</p>
   <aside>The last slide of the scope section. The Impedance demo also shows how to walk through a process step by step inside a slide; see the Process animations rows in RECIPES.md.</aside>
+</section>
+
+<!-- ================= theme: feeder ================= -->
+
+<section data-dots="perch-dots" data-accent="#f2b632" class="fd dark" data-enter="flock" data-ambient="snowfall" style="justify-content:center">
+  <p class="kicker">Theme: feeder</p>
+  <h1>Garden birds</h1>
+  <p style="color:#e4ddcf">A flock that sweeps the next slide in, seed that piles up into it, cards that land like birds, a snowy winter dusk.</p>
+  <p class="label">Came in with flock: about forty birds flew across and this slide opened behind them. data-ambient="snowfall" behind it: bare branches, snow and birds on the twigs.</p>
+  <aside>The feeder theme was made for the Lookout talk about a smart bird feeder. The birds' bellies are the accent colour; their back and head colours are data-feeder-bird on the body.</aside>
+</section>
+
+<section data-dots="perch-dots" data-accent="#f2b632" class="fd" data-enter="seed-fall">
+  <h2>Cards that land</h2>
+  <div class="row">
+    <div class="card" data-fx="perch"><p class="big">18.5 g</p><p class="label">Each card flies in on an arc from its own side and lands: data-fx="perch"</p></div>
+    <div class="card" data-fx="perch"><p class="big">300 g</p><p class="label">A damped squash at its bottom edge, like a bird settling</p></div>
+    <div class="card" data-fx="perch"><p class="big">2.51 $</p><p class="label">Numbers inside count up after the landing</p></div>
+  </div>
+  <p class="label">Came in with seed-fall (feeder): seed poured down and this slide filled in under the rising pile.</p>
+  <aside>perch suits cards with a weight or a price. Going back, seed-fall drains the pile away.</aside>
+</section>
+
+<section data-dots="perch-dots" data-accent="#f2b632" class="fd" data-enter="flock" style="flex-direction:row;align-items:center;gap:80px">
+  <img data-fx="spin3d" src="../Lookout-demo/media/house_iso.png" alt="The Lookout bird feeder house" style="width:760px;height:570px;border-radius:24px;object-fit:cover">
+  <div style="display:flex;flex-direction:column;gap:32px;flex:1">
+    <h2>A perch as progress</h2>
+    <p>Below: data-dots="perch-dots". A bird hops along the rail to the current slide; every slide already seen leaves a seed.</p>
+    <p class="label">Came in with flock (feeder). A real talk with this theme, a stepped block-diagram tour and a live simulator with a phone drawer: demo/Lookout-demo.</p>
+  </div>
+  <aside>The last slide of the feeder section. Going back, the flock flies the other way and the bird turns round on the rail.</aside>
 </section>
 
 </body>

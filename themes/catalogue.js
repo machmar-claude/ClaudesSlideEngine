@@ -37,6 +37,33 @@ window.SE_CATALOGUE = {
  },
  "themes": [
   {
+   "name": "feeder",
+   "title": "Feeder (garden birds)",
+   "description": "A bird-feeder look: a flock of birds that sweeps the next slide in, seed that pours down and piles up into it, cards that fly in and land like birds, a snowy winter dusk with birds on the twigs, and a perch rail as progress.",
+   "accent": "#F2B632",
+   "options": {
+    "data-feeder-bird": "the birds' back and head colours, comma separated (default #6B7F4E,#1B1E1C: a great tit); the belly is the accent"
+   },
+   "preview": {
+    "perch": "<div class=\"card\" data-fx=\"perch\"><p class=\"big\">18.5 g</p></div>"
+   },
+   "provides": {
+    "transitions": [
+     "flock",
+     "seed-fall"
+    ],
+    "effects": [
+     "perch"
+    ],
+    "ambients": [
+     "snowfall"
+    ],
+    "dots": [
+     "perch-dots"
+    ]
+   }
+  },
+  {
    "name": "pixelpine",
    "title": "PixelPine (LED tree)",
    "description": "Glowing LED matrix wipes and a twinkling LED background, from the PixelPine Christmas tree talk.",

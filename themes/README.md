@@ -115,6 +115,7 @@ them when the slide is left, and the overview, the planner and `tools/check-deck
 | theme | what it is | adds | tags | demo |
 |---|---|---|---|---|
 | **core** (built into `engine.js`) | neutral: cube turns, iris, blinds, dissolve, zoom, vortex and the automatic element builds | 10 transitions, 13 effects, 2 dot styles | | [showcase](../demo/showcase/deck.html) |
+| [**feeder**](feeder/README.md) | A bird-feeder look: a flock of birds that sweeps the next slide in, seed that pours down and piles up into it, cards that fly in and land like birds, a snowy winter dusk with birds on the twigs, and a perch rail as progress. | 2 transitions, 1 effect, 1 ambient, 1 dot style | birds, nature, playful | [Lookout-demo](../demo/Lookout-demo/deck.html) |
 | [**pixelpine**](pixelpine/README.md) | Glowing LED matrix wipes and a twinkling LED background, from the PixelPine Christmas tree talk. | 4 transitions, 1 ambient, 1 dot style | electronics, glow, led | [PixelPine-demo](../demo/PixelPine-demo/deck.html) |
 | [**pmic**](pmic/README.md) | Power-management look: PWM pulse-train and power-up-sequence wipes, a converter-ringing settle effect, PCB traces with pulses and a staircase of rising supply rails as progress. | 2 transitions, 1 effect, 1 ambient, 1 dot style | electronics, pcb, power |  |
 | [**scope**](scope/README.md) | An oscilloscope look: a beam that writes the next slide, a CRT switch-off, a graticule with phosphor traces, SVG lines that draw themselves. | 2 transitions, 1 effect, 1 ambient | electronics, glow, measurement | [Impedance-demo](../demo/Impedance-demo/deck.html) |
@@ -131,6 +132,7 @@ them when the slide is left, and the overview, the planner and `tools/check-deck
 | `cube-y` | core |
 | `dissolve` | core |
 | `fade` | core |
+| `flock` | [feeder](feeder/README.md) |
 | `glitch` | core |
 | `iris` | core |
 | `led-diagonal` | [pixelpine](pixelpine/README.md) |
@@ -141,6 +143,7 @@ them when the slide is left, and the overview, the planner and `tools/check-deck
 | `pwm-wipe` | [pmic](pmic/README.md) |
 | `rail-sweep` | [pmic](pmic/README.md) |
 | `scope-sweep` | [scope](scope/README.md) |
+| `seed-fall` | [feeder](feeder/README.md) |
 | `steam` | [train](train/README.md) |
 | `track` | [train](train/README.md) |
 | `train` | [train](train/README.md) |
@@ -158,6 +161,7 @@ them when the slide is left, and the overview, the planner and `tools/check-deck
 | `flip` | core |
 | `letters` | core |
 | `list` | core |
+| `perch` | [feeder](feeder/README.md) |
 | `pop` | core |
 | `power` | core |
 | `puff` | [train](train/README.md) |
@@ -179,6 +183,7 @@ them when the slide is left, and the overview, the planner and `tools/check-deck
 | `leds` | [pixelpine](pixelpine/README.md) |
 | `rails` | [pmic](pmic/README.md) |
 | `scope-grid` | [scope](scope/README.md) |
+| `snowfall` | [feeder](feeder/README.md) |
 | `trains` | [train](train/README.md) |
 
 ### Progress dot styles (`data-dots`), A–Z
@@ -188,6 +193,7 @@ them when the slide is left, and the overview, the planner and `tools/check-deck
 | `counter` | core |
 | `dots` | core |
 | `led-dots` | [pixelpine](pixelpine/README.md) |
+| `perch-dots` | [feeder](feeder/README.md) |
 | `rails-dots` | [pmic](pmic/README.md) |
 | `track` | [train](train/README.md) |
 
@@ -195,12 +201,14 @@ them when the slide is left, and the overview, the planner and `tools/check-deck
 
 | tag | themes |
 |---|---|
+| birds | [feeder](feeder/README.md) |
 | electronics | [pixelpine](pixelpine/README.md), [pmic](pmic/README.md), [scope](scope/README.md) |
 | glow | [pixelpine](pixelpine/README.md), [scope](scope/README.md) |
 | led | [pixelpine](pixelpine/README.md) |
 | measurement | [scope](scope/README.md) |
+| nature | [feeder](feeder/README.md) |
 | pcb | [pmic](pmic/README.md) |
-| playful | [train](train/README.md) |
+| playful | [feeder](feeder/README.md), [train](train/README.md) |
 | power | [pmic](pmic/README.md) |
 | steam | [train](train/README.md) |
 | transport | [train](train/README.md) |

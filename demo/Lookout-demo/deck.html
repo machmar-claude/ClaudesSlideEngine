@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lookout</title>
+<!-- Source of the talk. Build the single-file version from this folder with:
+     python ../../../build.py deck.html -o Lookout.html
+     Live slides 9 and 10 need start-simulator.bat (port 8765) and start-mumr.bat desktop (port 8766) running on this PC. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Nunito+Sans:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../../engine.css">
+<script src="../../themes/feeder/theme.js" defer></script>
+<script src="../../themes/pmic/theme.js" defer></script>
+<script src="../../themes/scope/theme.js" defer></script>
+<script src="../../engine.js" defer></script>
+<style>
+  .se-slide { font-family: 'Nunito Sans', Arial, sans-serif; }
+  .se-slide :where(th, td) { border-bottom-color: rgba(22, 39, 31, .14); }
+  .light { background: #F5F0E6; color: #16271F; padding: 112px 128px; display: flex; flex-direction: column; gap: 48px; }
+  .dark { background: #13221B; color: #F5F0E6; padding: 128px; display: flex; flex-direction: row; align-items: center; gap: 96px; }
+  h1, h2 { font-family: 'Nunito', Arial, sans-serif; font-weight: 800; }
+  h2 { font-size: 64px; line-height: 1.15; }
+  .t { font-size: 40px; line-height: 1.35; }
+  .l { font-size: 32px; line-height: 1.35; }
+  .dim { color: #4A5A50; }
+  .num { font-family: 'Nunito', Arial, sans-serif; font-size: 64px; font-weight: 800; line-height: 1.1; color: #8A4A36; }
+  .card { display: flex; flex-direction: column; gap: 8px; background: #FFFCF6; border: 2px solid #E2D9C6; border-radius: 24px; padding: 28px 36px; }
+  .row { display: flex; flex-direction: row; gap: 48px; }
+  .stack { display: flex; flex-direction: column; gap: 28px; }
+  .frame { background: #fff; border: 2px solid #E2D9C6; border-radius: 24px; box-shadow: 0 12px 40px rgba(22, 39, 31, .12); object-fit: cover; }
+  .kicker { font-size: 32px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #F2B632; }
+  ul.pts { margin: 0; padding-left: 44px; display: flex; flex-direction: column; gap: 24px; }
+  ul.pts li { font-size: 40px; line-height: 1.3; }
+  ul.pts li::marker { color: #8A4A36; }
+  b.k { color: #8A4A36; }
+
+  /* block diagram tour */
+  .sch-view { position: absolute; left: 96px; top: 200px; width: 1728px; height: 816px; overflow: hidden; border-radius: 24px; border: 2px solid #E2D9C6; background: #fff; }
+  .sch-layer { position: absolute; left: 0; top: 0; width: 1200px; height: 800px; transform-origin: 0 0; transition: transform .9s cubic-bezier(.65, 0, .25, 1); }
+  .sch-layer img, .sch-layer svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .sch-layer rect { fill: none; stroke-width: 4px; vector-effect: non-scaling-stroke; transition: opacity .5s; opacity: 0; }
+  .sch-layer g.badge { transition: opacity .5s; }
+  .sch-view.zoomed .sch-layer g.badge { opacity: 0; }
+  .sch-view.zoomed .sch-layer rect { opacity: 0; }
+  .sch-view.zoomed .sch-layer rect.on { opacity: 1; }
+  .sch-panel { position: absolute; right: 24px; top: 24px; bottom: 24px; width: 500px; background: rgba(255, 252, 246, .97); border: 2px solid #E2D9C6; border-radius: 20px; padding: 32px 36px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 8px 30px rgba(22, 39, 31, .12); }
+  .sch-step { display: none; flex-direction: column; gap: 20px; }
+  .sch-step.on { display: flex; }
+  .sch-step .hd { display: flex; align-items: center; gap: 20px; font-family: 'Nunito', Arial, sans-serif; font-size: 40px; font-weight: 800; line-height: 1.15; }
+  .bdg { flex: none; width: 56px; height: 56px; border-radius: 50%; color: #fff; font-family: 'Nunito', Arial, sans-serif; font-size: 32px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .legend { display: flex; flex-direction: column; gap: 20px; }
+  .legend div { display: flex; align-items: center; gap: 20px; font-size: 32px; font-weight: 700; }
+  .sch-dots { margin-top: auto; display: flex; gap: 12px; }
+  .sch-dots i { width: 18px; height: 18px; border-radius: 50%; background: #E2D9C6; }
+  .sch-dots i.on { background: #8A4A36; }
+
+  /* live pages */
+  .live-box { position: absolute; inset: 0; background: #0f1714; }
+  .live-box iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .live-bar { position: absolute; left: 32px; bottom: 28px; display: flex; gap: 12px; align-items: center; pointer-events: none; }
+  .live-chip { padding: 10px 24px; border-radius: 16px; background: rgba(19, 34, 27, .85); color: #F5F0E6; font-family: 'Nunito', Arial, sans-serif; font-size: 32px; font-weight: 800; display: flex; align-items: center; gap: 16px; }
+  .live-chip i { width: 18px; height: 18px; border-radius: 50%; background: #6B7A72; }
+  .live-chip.ok i { background: #F2B632; box-shadow: 0 0 12px #F2B632; animation: livepulse 1.4s ease-in-out infinite; }
+  @keyframes livepulse { 50% { opacity: .35; } }
+  .live-bar.autohide:has(.live-chip.ok) { opacity: 0; transition: opacity .8s 2.5s; }
+  .live-off { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; color: #ECE9E2; text-align: center; padding: 160px; }
+  .live-off.hide { display: none; }
+
+  /* phone drawer on the simulator slide: a tab on the right edge slides out the mirrored phone */
+  .drawer { position: absolute; top: 40px; bottom: 40px; right: 0; width: 600px; z-index: 5; pointer-events: none; }
+  .drawer .pane { position: absolute; inset: 0 24px 0 0; background: #0f1714; border-radius: 28px; overflow: hidden; border: 2px solid #2b3a33; pointer-events: auto;
+    clip-path: inset(0 0 0 100% round 28px); transition: clip-path .6s cubic-bezier(.65, 0, .25, 1); }
+  .drawer.open .pane { clip-path: inset(0 0 0 0 round 28px); }
+  .drawer .pane iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .drawer .tab { position: absolute; left: 516px; top: 50%; pointer-events: auto; transition: left .6s cubic-bezier(.65, 0, .25, 1); transform: translateY(-50%); width: 84px; height: 220px; border: 0; border-radius: 24px 0 0 24px; background: #F2B632; color: #16271F; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; font: 800 32px 'Nunito', Arial, sans-serif; box-shadow: -6px 0 24px rgba(0, 0, 0, .35); }
+  .drawer .tab span { writing-mode: vertical-rl; transform: rotate(180deg); }
+  .drawer.open .tab { left: -84px; }
+  .drawer .tab svg { transition: transform .6s; }
+  .drawer.open .tab svg { transform: rotate(180deg); }
+</style>
+</head>
+<body data-accent="#F2B632" data-lang="cs" data-dots="perch-dots" data-feeder-bird="#6B7F4E,#1B1E1C">
+
+<!-- 1 · title -->
+<section id="cover" data-ambient="snowfall" class="dark">
+  <div style="display:flex; flex-direction:column; gap:32px; flex:1">
+    <p class="kicker">KTE · Projekt 4</p>
+    <h1 style="font-size:128px; line-height:1.05; color:#F5F0E6">Lookout</h1>
+    <p class="t" style="color:#E4DDCF">Chytré krmítko, které pozná, zváží a uslyší ptáky. Mozkem je starý telefon. Bez cloudu a bez předplatného.</p>
+    <p class="l" style="color:#B9C6BD">Bc. Marek Mach · listopad 2026</p>
+  </div>
+  <img data-fx="spin3d" src="media/house_iso.png" alt="3D model krmítka Lookout" style="width:720px; height:540px; border-radius:32px; object-fit:cover">
+  <aside>Dobrý den, představím projekt Lookout. Je to krmítko pro ptáky ve tvaru domečku, které ptáky rozpozná podle fotky i podle hlasu, zváží je a hlídá, kolik zbývá semínek.
+
+Nemá vlastní kameru ani vlastní procesor pro umělou inteligenci. Mozkem je starý telefon s Androidem, který má většina lidí v šuplíku. Telefon leží v utěsněné přihrádce pod střechou.
+
+Všechno běží doma, žádný cloud a žádné předplatné. Nejdřív řeknu, proč právě telefon, pak elektroniku a cenu, a na konci ukážu simulátor a smíšenou realitu naživo.</aside>
+</section>
+
+<!-- 2 · why a phone -->
+<section id="why" data-enter="flock" class="light" style="flex-direction:row; align-items:center; gap:72px">
+  <div class="stack" style="flex:1; gap:44px">
+    <h2>Proč telefon</h2>
+    <ul class="pts">
+      <li><b class="k">Kamera, výkon pro AI, Wi-Fi</b> už kupující má: starý Android ze šuplíku</li>
+      <li><b class="k">Žádné rádio</b> v našem výrobku: odpadá RED a kyberbezpečnost EN 18031, ≈&nbsp;10–15&nbsp;tis.&nbsp;€ testů</li>
+      <li><b class="k">Bez cloudu:</b> rozpoznávání běží v telefonu, data zůstávají na domácí Wi-Fi</li>
+    </ul>
+  </div>
+  <div class="stack" style="width:760px; gap:16px">
+    <img data-fx="scan" class="frame" src="media/house_section.png" alt="Řez krmítkem: telefon v přihrádce pod střechou" style="width:760px; height:570px">
+    <p class="l dim">Řez: telefon v zateplené přihrádce, kamera míří oknem na misku</p>
+  </div>
+  <aside>Proč telefon. Chytrá krmítka na trhu, třeba Bird Buddy nebo Birdfy, mají v sobě vlastní kameru, baterii a Wi-Fi a za rozpoznávání ptáků si často účtují předplatné.
+
+Starý telefon už má kameru, výkon na neuronové sítě, displej i Wi-Fi a lidé ho mají zadarmo v šuplíku. My dodáváme jen domeček a malou desku se senzory.
+
+Druhá výhoda je regulatorní: náš výrobek nemá žádné rádio. Odpadá tím směrnice RED a od srpna 2025 povinná kyberbezpečnost podle EN 18031, což by bylo zhruba deset až patnáct tisíc eur za testy. Rádio je v telefonu, který už certifikovaný je.</aside>
+</section>
+
+<!-- 3 · what is connected to the phone -->
+<section id="cable" data-enter="seed-fall" class="light" style="flex-direction:row; align-items:center; gap:64px">
+  <div class="stack" style="width:720px; gap:16px">
+    <img data-fx="spin3d" class="frame" src="media/house_exploded.png" alt="Rozložený model krmítka" style="width:720px; height:540px">
+    <p class="l dim">Rozložený model: střecha, přihrádka s telefonem, zásobník, miska, bidýlka</p>
+  </div>
+  <div class="stack" style="flex:1; gap:32px">
+    <h2>Co je připojené k telefonu</h2>
+    <svg data-fx="trace" viewBox="0 0 900 600" width="900" height="600" font-family="Nunito Sans, Arial, sans-serif">
+      <rect x="10" y="200" width="200" height="200" rx="28" fill="#FFFCF6" stroke="#16271F" stroke-width="5"/>
+      <text x="110" y="290" text-anchor="middle" font-size="32" font-weight="700" fill="#16271F">telefon</text>
+      <text x="110" y="330" text-anchor="middle" font-size="32" fill="#4A5A50">Android</text>
+      <path d="M210 300 H360" stroke="#8A4A36" stroke-width="14" stroke-linecap="round" fill="none"/>
+      <text x="285" y="268" text-anchor="middle" font-size="32" font-weight="700" fill="#8A4A36">USB-C</text>
+      <text x="285" y="352" text-anchor="middle" font-size="32" fill="#8A4A36">AOA</text>
+      <rect x="360" y="230" width="170" height="140" rx="20" fill="#F2B632" stroke="#16271F" stroke-width="5"/>
+      <text x="445" y="295" text-anchor="middle" font-size="32" font-weight="700" fill="#16271F">modul</text>
+      <text x="445" y="335" text-anchor="middle" font-size="32" fill="#16271F">MCU</text>
+      <path d="M530 260 C 590 260, 590 75, 640 75" stroke="#16271F" stroke-width="5" fill="none"/>
+      <path d="M530 285 C 600 285, 600 225, 640 225" stroke="#16271F" stroke-width="5" fill="none"/>
+      <path d="M530 315 C 600 315, 600 375, 640 375" stroke="#16271F" stroke-width="5" fill="none"/>
+      <path d="M530 340 C 590 340, 590 525, 640 525" stroke="#16271F" stroke-width="5" fill="none"/>
+      <text x="650" y="70" font-size="32" font-weight="700" fill="#16271F">5 vah</text>
+      <text x="650" y="108" font-size="32" fill="#4A5A50">miska + 4 bidýlka</text>
+      <text x="650" y="220" font-size="32" font-weight="700" fill="#16271F">mikrofon</text>
+      <text x="650" y="258" font-size="32" fill="#4A5A50">hlasy, 32 kHz</text>
+      <text x="650" y="370" font-size="32" font-weight="700" fill="#16271F">topení 4 W</text>
+      <text x="650" y="408" font-size="32" fill="#4A5A50">+ teploměr NTC</text>
+      <text x="650" y="520" font-size="32" font-weight="700" fill="#16271F">ventilátor</text>
+      <text x="650" y="558" font-size="32" fill="#4A5A50">30 mm, 5 V</text>
+    </svg>
+  </div>
+  <aside>K telefonu vede jediný kabel USB-C. Naše deska je na něm USB host a mluví s aplikací protokolem Android Open Accessory, zkráceně AOA. Tímhle jedním kabelem telefon dostává napájení, tedy se nabíjí, a zároveň všechna data ze senzorů.
+
+Senzory jsou pět vah: jedna pod miskou se zásobníkem na tři kilogramy a čtyři pod jednotlivými bidýlky po tři sta gramech, takže se dá zvážit víc ptáků najednou. Dál MEMS mikrofon pro hlasy, teploměr v přihrádce, topení čtyři watty a ventilátor na léto.
+
+Kameru používáme tu z telefonu, kouká skleněným okénkem. Mikrofon máme vlastní, s otvorem pod okapem, protože telefon je zavřený v utěsněné přihrádce.</aside>
+</section>
+
+<!-- 4 · block diagram, stepped: → / ← zoom into the blocks before the deck moves on -->
+<section id="sch" data-enter="scope-sweep" class="light" style="display:block">
+  <h2 style="position:absolute; left:128px; top:84px">Blokové schéma</h2>
+  <div class="sch-view" id="sch-view" data-fx="scan">
+    <div class="sch-layer" id="sch-layer">
+      <img src="media/block-diagram.svg" alt="Blokové schéma elektroniky Lookout">
+      <svg viewBox="0 0 1200 800" aria-hidden="true">
+        <rect data-b="1" x="22" y="64" width="806" height="226" rx="12" stroke="#B3261E"/>
+        <rect data-b="2" x="432" y="100" width="742" height="350" rx="12" stroke="#1A56C4"/>
+        <rect data-b="3" x="282" y="282" width="620" height="486" rx="12" stroke="#8A4A36"/>
+        <g class="badge"><circle cx="40" cy="64" r="22" fill="#B3261E"/><text x="40" y="72" text-anchor="middle" font-size="24" font-weight="700" fill="#fff" font-family="Arial">1</text></g>
+        <g class="badge"><circle cx="1160" cy="100" r="22" fill="#1A56C4"/><text x="1160" y="108" text-anchor="middle" font-size="24" font-weight="700" fill="#fff" font-family="Arial">2</text></g>
+        <g class="badge"><circle cx="282" cy="768" r="22" fill="#8A4A36"/><text x="282" y="776" text-anchor="middle" font-size="24" font-weight="700" fill="#fff" font-family="Arial">3</text></g>
+      </svg>
+    </div>
+    <div class="sch-panel" data-fx="none">
+      <div class="sch-step on" data-s="0">
+        <p class="l dim">Jedna deska 90 × 50 mm v přihrádce u telefonu. Šipkou projdu tři bloky.</p>
+        <div class="legend">
+          <div><span class="bdg" style="background:#B3261E">1</span>Napájení</div>
+          <div><span class="bdg" style="background:#1A56C4">2</span>MCU a telefon</div>
+          <div><span class="bdg" style="background:#8A4A36">3</span>Senzory</div>
+        </div>
+      </div>
+      <div class="sch-step" data-s="1">
+        <div class="hd"><span class="bdg" style="background:#B3261E">1</span>Napájení</div>
+        <p class="l">Adaptér 12 V doma, až 10 m kabelu. Při 5 V by kabel ztratil 1,7 V.</p>
+        <p class="l">Měnič 12 → 5 V nabíjí telefon (1,5 A), LDO 3,3 V pro MCU a váhy.</p>
+        <p class="l dim">Jediná ochrana: TVS dioda na vstupu.</p>
+      </div>
+      <div class="sch-step" data-s="2">
+        <div class="hd"><span class="bdg" style="background:#1A56C4">2</span>MCU a telefon</div>
+        <p class="l">CH32X035 (RISC-V, 0,27 $) je USB host: AOA k telefonu.</p>
+        <p class="l">V noci vypne telefonu 5 V, baterie drží 40–80 %.</p>
+        <p class="l dim">Firmware: 5,6 KB flash, 8,9 KB RAM.</p>
+      </div>
+      <div class="sch-step" data-s="3">
+        <div class="hd"><span class="bdg" style="background:#8A4A36">3</span>Senzory</div>
+        <p class="l">5 × HX711, 24 bit: miska 3 kg a 4 bidýlka po 300 g.</p>
+        <p class="l">Mikrofon přes vlastní operační zesilovač MCU, 32 kHz.</p>
+        <p class="l dim">NTC řídí topení (≥ +5 °C) a ventilátor (> 35 °C).</p>
+      </div>
+      <div class="sch-dots" id="sch-dots"><i class="on"></i><i></i><i></i><i></i></div>
+    </div>
+  </div>
+  <aside>Tohle je blokové schéma elektroniky. Červeně je napájení, černě signály. Projdu ho po třech blocích.
+
+První blok je napájení. Doma je koupený adaptér dvanáct voltů s certifikací CE a k domečku vede až deset metrů kabelu. Dvanáct voltů proto, že při pěti voltech by na kabelu spadlo skoro dva volty. Spínaný měnič dělá pět voltů pro telefon, lineární regulátor tři celé tři pro procesor a váhy. Ochrany jsme kromě jedné TVS diody vědomě vynechali.
+
+Druhý blok je mikrokontrolér CH32X035 od WCH za sedmadvacet centů. Je to USB host, takže s telefonem mluví přes AOA. V noci telefonu vypíná napájení, aby baterie v teple nebyla pořád na sto procentech a nenafoukla se.
+
+Třetí blok jsou senzory: pět dvacetičtyřbitových převodníků HX711, jeden na každou váhu, mikrofon přes operační zesilovač přímo v procesoru, a teploměr, podle kterého se řídí topení a ventilátor.</aside>
+</section>
+
+<!-- 5 · what it is made of -->
+<section id="build" data-enter="iris" class="light" style="flex-direction:row; align-items:center; gap:72px">
+  <div class="stack" style="flex:1; gap:40px">
+    <h2>Z čeho je</h2>
+    <p class="t">Lisovaný domeček z ASA, stěny 2,5 mm, 300&nbsp;×&nbsp;330&nbsp;×&nbsp;302&nbsp;mm, prázdný 2,0 kg. Telefon leží v šuplíku pod střechou, obalený 20 mm pěny.</p>
+    <div class="row" style="gap:32px">
+      <div class="card" data-fx="ripple" style="flex:1"><p class="num">4 W</p><p class="l">topení: přihrádka ≥ +5 °C i při −25 °C</p></div>
+      <div class="card" data-fx="ripple" style="flex:1"><p class="num">52 → 38 °C</p><p class="l">v létě bez ventilátoru a s&nbsp;ním (35 °C ve stínu)</p></div>
+    </div>
+  </div>
+  <div class="stack" style="width:680px; gap:16px">
+    <img data-fx="spin3d" class="frame" src="media/house_back.png" alt="Zadní strana krmítka: šuplík s telefonem a klapka na plnění" style="width:680px; height:510px">
+    <p class="l dim">Zezadu: šuplík pro telefon a klapka na doplnění semínek</p>
+  </div>
+  <aside>Mechanika. Domeček je z lisovaného plastu ASA, který vydrží UV záření, se stěnami dva a půl milimetru. Měří zhruba třicet na třicet tři centimetrů a prázdný váží dva kilogramy. Nasadí se na tyč, nebo se pověsí.
+
+Telefon leží v šuplíku, který se vysouvá bokem, a je obalený dvaceti milimetry pěny. Semínka se doplňují klapkou vzadu, takže se při plnění na telefon vůbec nesahá.
+
+Tepelný model ukázal dvě věci. V zimě stačí topení čtyři watty, aby v přihrádce bylo aspoň pět stupňů. V létě by bez ventilátoru bylo v přihrádce dvaapadesát stupňů, s ventilátorem osmatřicet, takže ventilátor není volitelný.</aside>
+</section>
+
+<!-- 6 · what it is good for -->
+<section id="use" data-enter="blinds" class="light" style="flex-direction:row; align-items:center; gap:64px">
+  <div class="stack" style="width:820px; gap:16px">
+    <div data-fx="radial" class="frame" style="width:820px; height:620px; overflow:hidden">
+      <img src="media/truth.png" alt="Dvě sýkory koňadry na bidýlkách, každá zvážená" style="width:820px; height:620px; object-fit:cover; object-view-box:inset(151px 480px 198px 391px)">
+    </div>
+    <p class="l dim">Každé bidýlko má vlastní váhu: dvě koňadry, 18,5 g a 18,4 g</p>
+  </div>
+  <div class="stack" style="flex:1; gap:40px">
+    <h2>K čemu je</h2>
+    <ul class="pts">
+      <li><b class="k">Vidí:</b> druh z fotky, galerie, poplach na kočku a veverku</li>
+      <li><b class="k">Slyší:</b> druh podle hlasu na 98 %, i ptáky, co nepřiletí</li>
+      <li><b class="k">Váží:</b> semínka (kdy dojdou), každého ptáka, zimní tloustnutí</li>
+      <li><b class="k">Radí:</b> kdy doplnit, jaké krmení, kdy vyčistit</li>
+    </ul>
+  </div>
+  <aside>K čemu krmítko je. Telefon kamerou pozná druh a ukládá nejlepší fotky do galerie, zvlášť pro každý druh. Upozorní, když přijde kočka, veverka nebo straka.
+
+Mikrofon pozná druh podle hlasu. Ověřili jsme to na nahrávkách z xeno-canto: druh podle hlasu na osmadevadesát procent. Typ hlasu, tedy zpěv, kontakt nebo poplach, jen na sedmašedesát procent, proto poplach hlásíme, jen když to potvrdí i váhy.
+
+Váhy říkají, kolik zbývá semínek a kdy dojdou, a váží každého ptáka zvlášť. Z ranní a večerní hmotnosti je vidět zimní tloustnutí, to žádné krmítko na trhu nemá. Na obrázku jsou dvě koňadry, každá na svém bidýlku, osmnáct a půl gramu.</aside>
+</section>
+
+<!-- 7 · price (the accent slide) -->
+<section id="price" data-enter="seed-fall" class="light" style="background:#F2C14E; gap:40px">
+  <h2>Cena</h2>
+  <div class="row" style="gap:36px">
+    <div class="card" data-fx="perch" style="flex:1; background:#FBE7B4; border-color:#E0A82E">
+      <p class="l" style="font-weight:700; letter-spacing:2px; text-transform:uppercase">Deska</p>
+      <p class="num" style="color:#16271F">2,51 $</p>
+      <p class="l">60 součástek, živé ceny LCSC při 1 000 ks</p>
+    </div>
+    <div class="card" data-fx="perch" style="flex:1; background:#FBE7B4; border-color:#E0A82E">
+      <p class="l" style="font-weight:700; letter-spacing:2px; text-transform:uppercase">Mimo desku</p>
+      <p class="num" style="color:#16271F">14,30 $</p>
+      <p class="l">z toho tenzometry 10,80 $ (odhad)</p>
+    </div>
+    <div class="card" data-fx="perch" style="flex:1; background:#16271F; border-color:#16271F; color:#F5F0E6">
+      <p class="l" style="font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#F2B632">Cíl v obchodě</p>
+      <p class="num" style="color:#F2B632">50–55 €</p>
+      <p class="l">bez předplatného (odhad)</p>
+    </div>
+  </div>
+  <table style="font-size:32px; width:100%">
+    <tr><th style="text-align:left">Konkurence (vlastní kamera a Wi-Fi)</th><th style="text-align:right">Cena</th><th style="text-align:right">Předplatné</th></tr>
+    <tr><td>Bird Buddy 2</td><td style="text-align:right">199 $</td><td style="text-align:right">59,99 $ / rok</td></tr>
+    <tr><td>Birdfy Feeder Rookie · Feeder 2 · 2 Duo</td><td style="text-align:right">109,99–329,99 $</td><td style="text-align:right">AI částečně placená</td></tr>
+  </table>
+  <p class="l dim">Kusovník: LCSC 2026-11-18. Konkurence: prodejci a recenze, 2026-11-16.</p>
+  <aside>Cena. Deska s elektronikou vychází na dva dolary a padesát jedna centů při tisíci kusech, šedesát součástek, ceny jsou stažené živě z LCSC. Nejdražší položka je pět převodníků HX711.
+
+Mimo desku je zhruba čtrnáct dolarů, hlavně pět tenzometrů za necelých jedenáct dolarů, k tomu adaptér, kabel a ventilátor. To jsou odhady z nabídek na Alibabě. Elektronika celkem zhruba sedmnáct dolarů.
+
+Cílová cena v obchodě je padesát až pětapadesát eur, je to zatím odhad. Konkurence s vlastní kamerou stojí od sto deseti do tři sta třiceti dolarů a Bird Buddy chce navíc šedesát dolarů ročně za předplatné. My jsme levnější, protože drahou část, tedy kameru, procesor a Wi-Fi, už zákazník má.</aside>
+</section>
+
+<!-- 8 · what comes next / beyond -->
+<section id="next" data-enter="cube-y" class="light" style="flex-direction:row; align-items:center; gap:64px">
+  <div class="stack" style="flex:1; gap:40px">
+    <h2>Co dál</h2>
+    <ul class="pts">
+      <li>Nabíjení přes AOA vyzkoušet na 3–4 skutečných starých telefonech</li>
+      <li>Ověřit USB host bez krystalu na CH32X035</li>
+      <li>Napsat skutečnou aplikaci, teď ji zastupuje simulátor</li>
+      <li>Typ hlasu: 67 % → vlastní model pro každý druh</li>
+    </ul>
+  </div>
+  <div class="stack" style="width:800px; gap:16px">
+    <img data-fx="tilt" class="frame" src="media/hero.png" alt="Krmítko ve smíšené realitě uprostřed pokoje" style="width:800px; height:450px">
+    <p class="l dim">Smíšená realita: krmítko v životní velikosti v pokoji, s konzolí a telefonem</p>
+  </div>
+  <aside>Co zbývá a co je dál. Nejdůležitější otevřená věc je otestovat nabíjení přes AOA na třech nebo čtyřech skutečných starých telefonech, protože AOA je podle dokumentace Androidu volitelná funkce a ne každý výrobce ji má. Dál ověřit, že procesor zvládne USB host bez krystalu.
+
+Aplikace pro Android zatím napsaná není, zastupuje ji simulátor, který teď ukážu. A rozpoznání typu hlasu se dá zlepšit vlastním modelem pro každý druh a víc označenými nahrávkami.
+
+Kromě toho jsem simulátor přenesl do smíšené reality: krmítko stojí v životní velikosti uprostřed pokoje a ptáci na něj létají. To ukážu jako poslední.</aside>
+</section>
+
+<!-- 9 · simulator, live, with the phone drawer -->
+<section id="simlive" data-enter="flock" data-click="off" data-dots="off" style="background:#0f1714; padding:0; display:block">
+  <div class="live-box" data-fx="none">
+    <div class="live-off">
+      <p class="t" style="font-weight:700">Simulátor se připojuje…</p>
+      <p class="l" style="color:#9AA3B2">Na tomto PC spusť <b>start-simulator.bat</b> (běží na <b>http://localhost:8765/</b>).</p>
+    </div>
+  </div>
+  <div class="live-bar autohide" data-fx="none"><div class="live-chip"><i></i>Simulátor</div></div>
+  <div class="drawer" id="phone-drawer" data-fx="none">
+    <button class="tab" type="button" aria-label="Ukázat telefon">
+      <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 L8 12 L15 19" fill="none" stroke="#16271F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Telefon</span>
+    </button>
+    <div class="pane"></div>
+  </div>
+  <aside>Teď simulátor naživo. Notebook počítá celý svět: zahradu, domeček, ptáky, počasí i hardware, tedy šum vah, vítr, topení a teplotu v přihrádce. Aplikace v telefonu vidí jen to, co by viděla ze senzorů.
+
+Vlevo je trojrozměrná zahrada, vpravo dole přehled vah, zvuku a přihrádky. Aplikace běží v rámečku telefonu na stránce a stejnou aplikaci otevřu na svém telefonu přes Wi-Fi.
+
+Tlačítkem vpravo vysunu zrcadlo mého telefonu, takže je vidět, co na něm právě dělám.</aside>
+</section>
+
+<!-- 10 · mixed reality, live -->
+<section id="mrlive" data-enter="crt" data-click="off" data-dots="off" style="background:#0b0f0d; padding:0; display:block">
+  <div class="live-box" data-fx="none">
+    <div class="live-off">
+      <p class="t" style="font-weight:700">Smíšená realita se připojuje…</p>
+      <p class="l" style="color:#9AA3B2">Na tomto PC spusť <b>start-mumr.bat desktop</b> (běží na <b>http://localhost:8766/view.html</b>), nebo <b>start-mumr.bat</b> pro brýle (https, port 8443).</p>
+    </div>
+  </div>
+  <div class="live-bar autohide" data-fx="none"><div class="live-chip"><i></i>Smíšená realita</div></div>
+  <aside>A smíšená realita. Tohle je pohled z počítače do sdíleného světa: krmítko v životní velikosti v pokoji, větev, na které ptáci čekají, konzole s ovládáním a velký telefon s aplikací.
+
+Je to ten samý kód simulátoru, nic není přepsané: svět počítá stejný hostitel, kreslí ho stejná scéna a telefon je stejná aplikace. Lidé v brýlích Quest můžou na ptáky sáhnout a vyplašit je, doplnit semínka nebo zapnout rentgen domečku.
+
+QR kód vpravo dole otevře aplikaci na telefonu kohokoli v místnosti, na stejné Wi-Fi.</aside>
+</section>
+
+<!-- 11 · end -->
+<section id="end" data-enter="flock" data-ambient="snowfall" class="dark">
+  <div style="flex:1; display:flex; flex-direction:column; gap:40px">
+    <h2 style="font-size:96px; line-height:1.1">Děkuji za pozornost</h2>
+    <p class="t" style="color:#E4DDCF">2,51&nbsp;$ deska · 16,81&nbsp;$ elektronika · cíl&nbsp;50–55&nbsp;€</p>
+    <p class="t" style="color:#E4DDCF">Žádné rádio, žádný cloud, žádné předplatné</p>
+    <p class="l" style="color:#B9C6BD">Ověřeno v simulaci. Další krok: nabíjení přes AOA na skutečných telefonech.</p>
+  </div>
+  <img data-fx="spin3d" src="media/house_iso.png" alt="Krmítko Lookout" style="width:640px; height:480px; border-radius:32px; object-fit:cover">
+  <aside>Shrnutí: deska vychází na dva a půl dolaru, elektronika celkem na necelých sedmnáct dolarů a cílová cena v obchodě je padesát až pětapadesát eur, bez předplatného.
+
+Hotové je blokové schéma, kusovník s živými cenami, 3D model domečku, tepelný model, zkušební překlad firmwaru, test rozpoznávání hlasu, simulátor a jeho verze ve smíšené realitě. Desku jsme nerozkreslovali do schématu ani do plošného spoje, to je další krok spolu s testem nabíjení na skutečných telefonech.
+
+Děkuji za pozornost, prostor pro dotazy.</aside>
+</section>
+
+<script>
+/* Block diagram tour: on the diagram slide, next/back step through the three blocks before the deck moves on (RECIPES: Nudgy #sch). */
+(() => {
+  const BLOCKS = [[0, 0, 1200, 800], [22, 64, 806, 226], [432, 100, 742, 350], [282, 282, 620, 486]];
+  const VIEW = [1728, 816], AREA = [VIEW[0] - 548, VIEW[1]], M = 28;   // the panel covers the right 548 px
+  const sec = document.getElementById('sch'), view = document.getElementById('sch-view'), layer = document.getElementById('sch-layer');
+  let step = 0;
+  function fit(i) {
+    const [x, y, w, h] = BLOCKS[i];
+    const s = Math.min((AREA[0] - 2 * M) / w, (AREA[1] - 2 * M) / h);
+    const tx = AREA[0] / 2 - (x + w / 2) * s, ty = AREA[1] / 2 - (y + h / 2) * s;
+    return `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${s.toFixed(5)})`;
+  }
+  function show(i) {
+    step = i; layer.style.transform = fit(i); view.classList.toggle('zoomed', i > 0);
+    layer.querySelectorAll('rect[data-b]').forEach(r => r.classList.toggle('on', +r.dataset.b === i));
+    sec.querySelectorAll('.sch-step').forEach(s => s.classList.toggle('on', +s.dataset.s === i));
+    sec.querySelectorAll('#sch-dots i').forEach((d, j) => d.classList.toggle('on', j === i));
+  }
+  sec.addEventListener('se:step', e => { const n = step + e.detail.dir; if (n >= 0 && n < BLOCKS.length) { e.preventDefault(); show(n); } });
+  const reset = () => { layer.style.transition = 'none'; show(0); layer.offsetWidth; layer.style.transition = ''; };
+  sec.addEventListener('se:enter', reset);
+  sec.addEventListener('se:leave', () => setTimeout(reset, 1500));
+  show(0);
+})();
+
+/* Live pages: an iframe from a local server, created only while its slide is shown (RECIPES: Nudgy #simlive). ?sim= / ?mr= give another origin. */
+function livePage(id, origins, page, onLoad) {
+  const sec = document.getElementById(id), box = sec.querySelector('.live-box'), off = sec.querySelector('.live-off'), chip = sec.querySelector('.live-chip');
+  let frame = null, origin = null, on = false, retry = null, leaveT = null;
+  async function reachable(o) {
+    try { await fetch(o + '/' + page, { mode: 'no-cors', cache: 'no-store' }); return true; } catch (e) { return false; }
+  }
+  async function connect() {
+    clearTimeout(retry);
+    if (!on) return;
+    for (const o of origins) if (await reachable(o)) { origin = o; break; }
+    if (!on) return;
+    if (!origin) { off.classList.remove('hide'); chip.classList.remove('ok'); retry = setTimeout(connect, 3000); return; }
+    frame = document.createElement('iframe');          // a new element each time: no history entries in the deck
+    frame.allow = 'autoplay; fullscreen; xr-spatial-tracking';
+    frame.src = origin + '/' + page;
+    box.appendChild(frame); off.classList.add('hide'); chip.classList.add('ok');
+    if (onLoad) onLoad(origin);
+  }
+  function enter() { on = true; clearTimeout(leaveT); if (!frame) connect(); }
+  function leave() {
+    on = false; clearTimeout(retry);
+    leaveT = setTimeout(() => { if (frame) { frame.remove(); frame = null; } origin = null; off.classList.remove('hide'); chip.classList.remove('ok'); if (onLoad) onLoad(null); }, 1500);
+  }
+  sec.addEventListener('se:enter', enter);
+  sec.addEventListener('se:leave', leave);
+}
+
+/* Phone drawer: the tab on the right edge slides out phone.html (the mirror of the presenting phone) from the same server. */
+const drawer = (() => {
+  const d = document.getElementById('phone-drawer'), pane = d.querySelector('.pane');
+  let origin = null, frame = null;
+  d.querySelector('.tab').addEventListener('click', e => {
+    e.stopPropagation();
+    const open = !d.classList.contains('open');
+    d.classList.toggle('open', open);
+    if (open && origin && !frame) { frame = document.createElement('iframe'); frame.src = origin + '/phone.html'; pane.appendChild(frame); }
+  });
+  return { set(o) { origin = o; if (!o) { d.classList.remove('open'); if (frame) { frame.remove(); frame = null; } } } };
+})();
+
+// keys stay with the deck: when a click moves focus into a live page, hand it back (mouse dragging still reaches it)
+addEventListener('blur', () => setTimeout(() => { if (document.activeElement && document.activeElement.tagName === 'IFRAME') { document.activeElement.blur(); window.focus(); } }, 0));
+{
+  const qs = new URLSearchParams(location.search);
+  livePage('simlive', qs.get('sim') ? [qs.get('sim')] : ['http://localhost:8765'], 'index.html', o => drawer.set(o));
+  livePage('mrlive', qs.get('mr') ? [qs.get('mr')] : ['http://localhost:8766', 'https://localhost:8443'], 'view.html');
+}
+</script>
+</body>
+</html>

@@ -6,7 +6,7 @@ trick for a kind of information, an interaction): one row each, with the deck an
 row when you find a better way. Rows are short; the deck itself is the full example to copy from.
 
 Slide links point at the deck source; open the deck and press the slide number (or add `#n` to its URL).
-Decks: [showcase](demo/showcase/deck.html) · [PixelPine](demo/PixelPine-demo/deck.html) · [Nudgy](demo/Nudgy-demo/deck.html) · [Impedance](demo/Impedance-demo/deck.html) (slide ids in the Czech decks) · PMIC talk (`presentation/deck.html` in the author's project, English; not yet in the repo).
+Decks: [showcase](demo/showcase/deck.html) · [PixelPine](demo/PixelPine-demo/deck.html) · [Nudgy](demo/Nudgy-demo/deck.html) · [Impedance](demo/Impedance-demo/deck.html) (slide ids in the Czech decks) · PMIC talk (`presentation/deck.html` in the author's project, English; not yet in the repo) · [Lookout](demo/Lookout-demo/deck.html) (Czech, feeder theme).
 
 ## Opening, structure, closing
 
@@ -28,6 +28,7 @@ Decks: [showcase](demo/showcase/deck.html) · [PixelPine](demo/PixelPine-demo/de
 | Prices per sales channel | Accent slide, one card per channel: 32 px uppercase channel label, 64 px price, 40 px margin line; a 32 px footnote for the basis (VAT, batch size) | PixelPine `#market` |
 | Costs and prices on one slide | Small cost table on top, a row of price cards below (shop, own e-shop, break-even quantity) | Nudgy `#price` |
 | Numbers that need a dramatic entrance | Cards with `data-fx="wagon"` and the number inside with `data-fx="puff"`: the card rolls in, then the number comes out of steam and counts (train theme) | Nudgy `#fw`, `#brief` |
+| Costs and a target price that need a light touch | Accent slide: three cards with `data-fx="perch"` (they fly in from their own side and land, then the number counts), the target-price card dark so it stands out; a small competitor table under them and a 32 px source line with the dates (feeder theme) | Lookout `#price` |
 | Bill of materials | Table of the 5–8 most expensive lines (part, qty, price), the rest summed in one row; the cost driver named in a sentence | PixelPine `#bom` |
 
 ## Hardware, pictures and clips
@@ -40,14 +41,17 @@ Decks: [showcase](demo/showcase/deck.html) · [PixelPine](demo/PixelPine-demo/de
 | What the product does (animations, modes) | A row of 2–3 short clips (`<img data-video>` with a still as poster, `data-fx="tilt"`), each with a one-line caption | PixelPine `#product`, `#personality` |
 | One clip as the hero | `data-fx="power"`: it switches on like a screen | PixelPine `#cover`, showcase 7 |
 | Exploded view / cross-section | Render with `data-fx="spin3d"` beside 2–4 cards that name the parts | Nudgy `#brief`, `#mech` |
+| Only part of a render matters | `<img>` with `object-fit:cover; object-view-box:inset(top right bottom left)` (px of the original picture) in a framed box: a crop without editing the file, and the element stays inside the slide for `check-deck.js` (Chromium; other browsers show the whole picture) | Lookout `#use` |
+| "Everything goes through one cable" | Inline SVG hub: the device box, one thick accent line labelled with the link (USB-C · AOA), a module box in the accent colour, four curves fanning out to 2-line labels; `data-fx="trace"` (scope theme) draws the lines; a render on the other half | Lookout `#cable` |
 | Simulation result as a clip | Screen recording of the simulator as WebM (`data-video`, poster PNG), `data-fx="power"`, the 3 key result numbers beside it | Nudgy `#sim`, `#how` |
 
 ## Interaction inside a slide
 
 | need | solution | where |
 |---|---|---|
-| Walk through a big schematic block by block | One slide: the whole schematic in a fixed frame, a layer with highlight rectangles, a side panel with one text per block. `se:step` turns → / ← into zoom steps (CSS transform on the layer) before the deck moves on; `se:enter` resets to the overview. Script at the end of the deck | Nudgy `#sch` |
-| Show a live app or simulator during the talk | `data-click="off"` slide with an iframe created on `se:enter` and removed on `se:leave`, a "connecting" screen while the local server isn't reachable, buttons to switch pages; keys stay with the deck | Nudgy `#simlive`, `#live` |
+| Walk through a big schematic block by block | One slide: the whole schematic in a fixed frame, a layer with highlight rectangles, a side panel with one text per block. `se:step` turns → / ← into zoom steps (CSS transform on the layer) before the deck moves on; `se:enter` resets to the overview. Script at the end of the deck. With an SVG source (a block diagram) the layer is the SVG's own size and stays sharp at every zoom; 3 steps are enough for a 5-minute talk, and the rectangles show only on their own step (numbered badges on the overview) | Nudgy `#sch`, Lookout `#sch` |
+| Show a live app or simulator during the talk | `data-click="off"` slide with an iframe created on `se:enter` and removed on `se:leave`, a "connecting" screen while the local server isn't reachable, buttons to switch pages; keys stay with the deck. `data-dots="off"` on the slide keeps the progress indicator off the live page | Nudgy `#simlive`, `#live`, Lookout `#simlive`, `#mrlive` |
+| A second live page on demand (a phone mirror beside the simulator) | A drawer on the right edge of the live slide: a tab button (accent colour, vertical label, arrow that turns) and a pane with its own iframe, created on the first open from the same origin as the main page and removed on `se:leave`. It opens with `clip-path: inset(0 0 0 100%)` → `inset(0)` and the tab moves along with `left`, so nothing ever sticks out of the slide; the drawer itself is `pointer-events:none` so the closed one doesn't block the page under it | Lookout `#simlive` |
 
 ## Process animations (explaining how something works)
 
