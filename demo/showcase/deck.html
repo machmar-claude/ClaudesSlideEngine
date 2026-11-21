@@ -14,6 +14,7 @@
 <script src="../../themes/pixelpine/theme.js" defer></script>
 <script src="../../themes/train/theme.js" defer></script>
 <script src="../../themes/scope/theme.js" defer></script>
+<script src="../../themes/ember/theme.js" defer></script>
 <script src="../../engine.js" defer></script>
 <style>
   /* neutral core look (info slides) */
@@ -61,6 +62,14 @@
   section.sc .kicker { color: #4fe3a0; }
   section.sc .label { color: #3f5047; }
   section.sc.dark .label { color: #9fbfae; }
+  section.em { font-family: 'Nunito Sans', Arial, sans-serif; background: #f4efea; color: #1b1a1d; }
+  section.em.dark { background: #121014; color: #f4efea; }
+  section.em h1, section.em h2 { font-family: Nunito, Arial, sans-serif; font-weight: 800; letter-spacing: 0; }
+  section.em .kicker { color: #ff6a4e; }
+  section.em .label { color: #5a5258; }
+  section.em.dark .label { color: #b8adb4; }
+  section.em .big { font-family: Nunito, Arial, sans-serif; font-weight: 800; color: #c8321c; }
+  section.em .card { background: #fffbf7; border-color: #e6dad2; }
 </style>
 </head>
 <body data-accent="#9fb3c8" data-lang="en">
@@ -326,6 +335,32 @@
   </svg>
   <p class="label">data-fx="trace" (scope) on an &lt;svg&gt;: every stroked path draws itself, fills and text fade in after. Came in with scope-sweep. A real talk with this theme and stepped process animations: demo/Impedance-demo.</p>
   <aside>The last slide of the scope section. The Impedance demo also shows how to walk through a process step by step inside a slide; see the Process animations rows in RECIPES.md.</aside>
+</section>
+
+<section data-dots="stitch-dots" data-accent="#ff4a2e" class="em dark" data-enter="scan-mux" data-ambient="embers" style="justify-content:center">
+  <p class="kicker">Theme: ember</p>
+  <h1>LED tie</h1>
+  <p style="color:#e6dcd5">A multiplexed LED-matrix wipe, a slide that grows out of a tie's knot, a spark that lights a card, embers, stitches.</p>
+  <p class="label">Came in with scan-mux: rows lit scan line by scan line, every 16th row at once. data-ambient="embers" behind it, data-dots="stitch-dots" below.</p>
+  <aside>The ember theme was made for a talk about a necktie with 3,699 red LEDs behind the fabric, driven as a one-sixteenth-scan matrix. Everything glows in the accent colour.</aside>
+</section>
+
+<section data-dots="stitch-dots" data-accent="#ff4a2e" class="em" data-enter="tie-drop">
+  <h2>Out of the knot</h2>
+  <p>This slide grew out of the top centre in the shape of a necktie, with a glowing seam along its edge, until it covered the screen.</p>
+  <p class="label">Came in with tie-drop (ember). Going back, the slide shrinks into the knot again.</p>
+  <aside>tie-drop suits the first content slide after a title, or a change of part.</aside>
+</section>
+
+<section data-dots="stitch-dots" data-accent="#ff4a2e" class="em" data-enter="scan-mux">
+  <h2>A spark lights the card</h2>
+  <div style="display:flex; gap:48px">
+    <div class="card" data-fx="spark" style="flex:1"><p class="big">94 mA</p><p>average current</p></div>
+    <div class="card" data-fx="spark" style="flex:1"><p class="big">13,6 h</p><p>battery life</p></div>
+    <div class="card" data-fx="spark" style="flex:1"><p class="big">3 699</p><p>LEDs</p></div>
+  </div>
+  <p class="label">data-fx="spark" (ember): a spark runs round each card, the card lights up behind it, and its number counts. A real talk with this theme and a live simulator inside a slide: demo/Ember-demo.</p>
+  <aside>The last slide of the ember section. The Ember demo also embeds its simulator as a static page, no server needed.</aside>
 </section>
 
 </body>

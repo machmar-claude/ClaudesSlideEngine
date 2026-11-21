@@ -37,6 +37,33 @@ window.SE_CATALOGUE = {
  },
  "themes": [
   {
+   "name": "ember",
+   "title": "Ember (LED-matrix tie)",
+   "description": "An LED-tie look: a multiplexed-matrix wipe that writes the next slide scan line by scan line, a slide that grows out of the knot in the shape of a necktie, a spark that runs round a card and lights it, embers drifting up a dark slide, and stitches along a seam as progress.",
+   "accent": "#FF4A2E",
+   "options": {
+    "data-ember-rows": "rows of the scan-mux wipe, rounded to a multiple of 16 (default 64)"
+   },
+   "preview": {
+    "spark": "<div class=\"card\" data-fx=\"spark\"><p class=\"big\">13,6 h</p></div>"
+   },
+   "provides": {
+    "transitions": [
+     "scan-mux",
+     "tie-drop"
+    ],
+    "effects": [
+     "spark"
+    ],
+    "ambients": [
+     "embers"
+    ],
+    "dots": [
+     "stitch-dots"
+    ]
+   }
+  },
+  {
    "name": "pixelpine",
    "title": "PixelPine (LED tree)",
    "description": "Glowing LED matrix wipes and a twinkling LED background, from the PixelPine Christmas tree talk.",

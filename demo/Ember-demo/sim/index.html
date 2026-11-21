@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ember Simulator</title>
+<style>
+  :root {
+    --bg: #0e0d0f; --panel: #17151a; --panel-2: #201d24; --line: #2e2a33;
+    --text: #eee8e2; --muted: #9a9198; --ember: #ff4a2e; --ember-soft: #ff4a2e33; --ok: #7fc99a; --warn: #f3b04a;
+    --ui: "Segoe UI", system-ui, -apple-system, sans-serif; --mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 var(--ui); height: 100vh; overflow: hidden; }
+  .app { display: grid; grid-template-columns: minmax(0, 1fr) 360px; height: 100vh; }
+  .stage { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; padding: 18px; min-width: 0; }
+  .tiewrap { position: relative; height: 100%; display: flex; align-items: center; }
+  #tie { height: 100%; cursor: crosshair; }
+  .loupe { position: relative; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #08070a; min-width: 0; }
+  #loupe { width: 100%; height: 100%; display: block; }
+  .tag { position: absolute; left: 14px; top: 12px; font: 600 11px/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .now { position: absolute; left: 14px; bottom: 14px; right: 14px; }
+  .now h2 { margin: 0 0 2px; font: 600 24px/1.15 var(--ui); }
+  .now p { margin: 0; color: var(--muted); font-size: 13px; max-width: 60ch; }
+  .rail { border-left: 1px solid var(--line); background: var(--panel); overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 18px; }
+  .rail h1 { margin: 0; font: 650 22px/1 var(--ui); letter-spacing: .01em; }
+  .rail h1 span { color: var(--ember); }
+  .sub { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+  section { display: flex; flex-direction: column; gap: 9px; }
+  h3 { margin: 0; font: 600 12px/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; }
+  h3 small { text-transform: none; letter-spacing: 0; font-weight: 400; }
+  .shows { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  button { font: 600 13px/1 var(--ui); color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; cursor: pointer; text-align: left; }
+  button:hover { border-color: #4a434f; }
+  button[aria-pressed="true"] { border-color: var(--ember); background: var(--ember-soft); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row > * { flex: 1; }
+  .btn-hw { text-align: center; padding: 14px; font-size: 14px; user-select: none; touch-action: none; }
+  .btn-hw.down { background: var(--ember-soft); border-color: var(--ember); }
+  input[type=range] { width: 100%; accent-color: var(--ember); }
+  .kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 13px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; font: 600 13px/1.3 var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+  .pill { font: 600 10px/1 var(--mono); padding: 3px 6px; border-radius: 99px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); }
+  .pill.on { color: #1a0f0c; background: var(--ember); border-color: var(--ember); }
+  .pill.okc { color: #0c1a10; background: var(--ok); border-color: var(--ok); }
+  .bars { display: grid; grid-template-columns: repeat(16, 1fr); gap: 3px; height: 54px; align-items: end; }
+  .bars i { display: block; background: var(--ember); border-radius: 2px 2px 0 0; min-height: 1px; opacity: .85; }
+  .note { margin: 0; color: var(--muted); font-size: 12px; }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .seg button { text-align: center; }
+  .prox { position: relative; height: 34px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); overflow: hidden; }
+  .prox .zone { position: absolute; top: 0; bottom: 0; background: #ff4a2e22; }
+  .prox .mark { position: absolute; top: 0; bottom: 0; width: 1px; background: #ffffff33; }
+  .prox .dot { position: absolute; top: 8px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: var(--text); transition: left .1s linear; }
+  .prox .lbl { position: absolute; bottom: 2px; font: 9px/1 var(--mono); color: var(--muted); margin-left: 3px; }
+  footer { color: var(--muted); font-size: 11.5px; margin-top: auto; }
+  footer code { font: 11px var(--mono); color: var(--text); }
+  @media (max-width: 860px) {
+    body { overflow: auto; height: auto; }
+    .app { grid-template-columns: 1fr; height: auto; }
+    .stage { height: 78vh; padding: 16px; }
+    .rail { border-left: 0; border-top: 1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <main class="stage">
+    <div class="tiewrap"><canvas id="tie" aria-label="Whole tie; click to move the loupe"></canvas></div>
+    <div class="loupe">
+      <canvas id="loupe" aria-label="Magnified section of the tie"></canvas>
+      <div class="tag" id="loupeTag">Loupe</div>
+      <div class="now"><h2 id="showName">—</h2><p id="showDesc"></p></div>
+    </div>
+  </main>
+
+  <aside class="rail">
+    <div>
+      <h1><span>Ember</span> simulator</h1>
+      <p class="sub">3,699 LEDs at their real PCB positions · 8-bit BCM · 1/16 scan · 50 fps · integer animation code</p>
+    </div>
+
+    <section>
+      <h3>Shows <small id="cycleInfo"></small></h3>
+      <div class="shows" id="shows"></div>
+      <div class="row">
+        <button id="autoBtn" aria-pressed="true">Auto-cycle</button>
+        <button id="fastBtn" aria-pressed="false">Demo pace (20 s)</button>
+      </div>
+    </section>
+
+    <section>
+      <h3>Someone in front of you <small id="proxState">alone</small></h3>
+      <div class="prox" id="proxBar">
+        <div class="zone" id="zoneNear"></div>
+        <div class="mark" id="mark60"></div><div class="mark" id="mark90"></div>
+        <span class="lbl" id="lbl60">60</span><span class="lbl" id="lbl90">90 cm</span>
+        <div class="dot" id="proxDot"></div>
+      </div>
+      <input type="range" id="dist" min="10" max="200" value="200" aria-label="Distance to the nearest person in cm">
+      <div class="seg">
+        <button data-d="200">Alone</button><button data-d="85">Chatting</button><button data-d="30">Slow dance</button>
+      </div>
+      <dl class="kv">
+        <dt>ToF reading (10 Hz, ±1.5 cm noise)</dt><dd id="tof">—</dd>
+        <dt>Calm mix</dt><dd id="mixOut">0 %</dd>
+      </dl>
+      <p class="note">Closer than 60 cm for 1.5 s → 2 s crossfade into Breathe. Further than 90 cm for 5 s → back.</p>
+    </section>
+
+    <section>
+      <h3>Button behind the knot <small id="btnInfo">on · brightness 100 %</small></h3>
+      <button class="btn-hw" id="hwBtn">Press · double-press · hold 2 s</button>
+      <p class="note">Click = next show · double-click = brightness 100/60/35 % · hold 2 s = off/on. Keyboard: space.</p>
+    </section>
+
+    <section>
+      <h3>View</h3>
+      <div class="seg" id="viewSeg">
+        <button data-v="fabric" aria-pressed="true">Through fabric</button>
+        <button data-v="bare" aria-pressed="false">Bare flex</button>
+        <button data-v="duty" aria-pressed="false">Duty map</button>
+      </div>
+    </section>
+
+    <section>
+      <h3>Electrical model <span class="pill" id="capPill">cap idle</span></h3>
+      <dl class="kv">
+        <dt>Average fill</dt><dd id="fill">—</dd>
+        <dt>LED current</dt><dd id="iLed">—</dd>
+        <dt>Overhead (drivers, MCU, ToF)</dt><dd id="iOver">—</dd>
+        <dt>Battery current / power</dt><dd id="iTot">—</dd>
+        <dt>Battery life at this rate</dt><dd id="life">—</dd>
+        <dt>Peak scan-line current</dt><dd id="iLine">—</dd>
+      </dl>
+      <div class="bars" id="bars" aria-label="Current per scan line"></div>
+      <p class="note">Per LED: 4.77 mA peak (R_EXT 3.9 k), 1/16 duty → 0.283 mA at full. Firmware caps the average fill at 25 % (316 mA).
+        Scan: 16 lines × 62.5 µs = 1 kHz refresh; one 8-bit line loads in 25.6 µs over 4 chains at 20 MHz. Values are 8-bit duty after a 2.2 gamma table, so the dim end of Breathe steps in whole duty units, as the real drivers do.</p>
+    </section>
+
+    <footer>LED positions from <code>led_map.js</code>, written by <code>hardware/scripts/geometry.py</code> (same source as the schematic and PCB). Numbers match <code>docs/power_model.py</code>.</footer>
+  </aside>
+</div>
+
+<script src="led_map.js"></script>
+<script>
+"use strict";
+// ============================================================ geometry
+const M = window.LED_MAP;
+const N = M.leds.length;
+const LX = new Float32Array(N), LY = new Float32Array(N);
+const ROW = new Int16Array(N), COL = new Int16Array(N), SCAN = new Uint8Array(N);
+let C_MIN = 99, C_MAX = -99, R_MAX = 0;
+M.leds.forEach((l, i) => { LX[i] = l[0]; LY[i] = l[1]; ROW[i] = l[2]; COL[i] = l[3]; SCAN[i] = l[4];
+  C_MIN = Math.min(C_MIN, l[3]); C_MAX = Math.max(C_MAX, l[3]); R_MAX = Math.max(R_MAX, l[2]); });
+const COLS = C_MAX - C_MIN + 1, ROWS = R_MAX + 1;
+const GRID = new Int16Array(ROWS * COLS).fill(-1);           // (row, col) -> LED index, -1 = no LED
+for (let i = 0; i < N; i++) GRID[ROW[i] * COLS + (COL[i] - C_MIN)] = i;
+const at = (r, c) => (r < 0 || r >= ROWS || c < C_MIN || c > C_MAX) ? -1 : GRID[r * COLS + (c - C_MIN)];
+const BOTTOM = new Int16Array(COLS), TOPROW = new Int16Array(COLS);   // lowest / highest LED row per column
+for (let c = 0; c < COLS; c++) { BOTTOM[c] = -1; TOPROW[c] = ROWS; }
+for (let i = 0; i < N; i++) { const c = COL[i] - C_MIN; BOTTOM[c] = Math.max(BOTTOM[c], ROW[i]); TOPROW[c] = Math.min(TOPROW[c], ROW[i]); }
+const HALFW = new Int16Array(ROWS);                          // widest |col| per row
+for (let i = 0; i < N; i++) HALFW[ROW[i]] = Math.max(HALFW[ROW[i]], Math.abs(COL[i]));
+
+// ============================================================ integer toolbox (ports 1:1 to C: uint8_t LUTs, xorshift32)
+const SIN = new Uint8Array(256);                             // 0..255, SIN[0] = 128
+for (let i = 0; i < 256; i++) SIN[i] = Math.round(127.5 + 127.5 * Math.sin(i * 2 * Math.PI / 256));
+const GAMMA = new Uint8Array(256);                           // perceived level -> 8-bit duty
+for (let i = 0; i < 256; i++) GAMMA[i] = Math.round(255 * Math.pow(i / 255, 2.2));
+let seed = 0x1234abcd >>> 0;
+function rnd() { seed ^= seed << 13; seed >>>= 0; seed ^= seed >>> 17; seed ^= seed << 5; seed >>>= 0; return seed; }
+const rand8 = () => rnd() & 255;
+const hash = (a, b, c) => { let h = (a * 374761393 + b * 668265263 + c * 2246822519) >>> 0; h = ((h ^ (h >>> 13)) * 1274126177) >>> 0; return (h ^ (h >>> 16)) & 255; };
+const lerp8 = (a, b, f) => a + (((b - a) * f) >> 8);
+function vnoise(x8, y8, z) {                                 // value noise, coords in 1/256 cells
+  const xi = x8 >> 8, yi = y8 >> 8, fx = x8 & 255, fy = y8 & 255;
+  const a = lerp8(hash(xi, yi, z), hash(xi + 1, yi, z), fx), b = lerp8(hash(xi, yi + 1, z), hash(xi + 1, yi + 1, z), fx);
+  return lerp8(a, b, fy);
+}
+const clamp8 = v => v < 0 ? 0 : v > 255 ? 255 : v;
+
+// ============================================================ shows: write perceived level 0..255 per LED into out[]
+// t is milliseconds since start (uint32 in firmware), dt the frame step (20 ms).
+const SHOWS = [];
+function show(name, desc, frame, init) { SHOWS.push({ name, desc, frame, init: init || (() => ({})) }); }
+
+show("Breathe", "The calm mode. The whole tie breathes dimly on a 10 s cycle, slightly brighter near the knot.",
+  (out, t) => {
+    const ph = ((t * 256 / 10000) | 0) & 255;
+    const b = SIN[(ph + 192) & 255];                            // starts at the bottom of the breath
+    const level = 22 + ((b * 70) >> 8);
+    for (let i = 0; i < N; i++) out[i] = (level * (256 - ((ROW[i] * 110) / R_MAX | 0))) >> 8;
+  });
+
+show("Woven", "Classic tie patterns drawn in light — regimental stripes, pin dots, herringbone, foulard — drifting slowly, with a sheen running down like light on silk.",
+  (out, t) => {
+    const P = 15000, k = ((t / P) | 0) % 4, f = (((t % P) * 256) / 1500) | 0;  // pattern, crossfade 1.5 s
+    const mix = f > 255 ? 255 : f, prev = (k + 3) % 4, drift = (t / 90) | 0;
+    for (let i = 0; i < N; i++) {
+      const a = pattern(k, ROW[i], COL[i], drift, t), b = mix < 255 ? pattern(prev, ROW[i], COL[i], drift, t) : a;
+      const v = lerp8(b, a, mix);
+      const sheen = 170 + ((SIN[(ROW[i] * 3 - (t >> 4)) & 255] * 86) >> 8);
+      out[i] = (v * sheen) >> 8;
+    }
+  });
+function pattern(k, r, c, drift, t) {
+  if (k === 0) {                                              // regimental: broad band, thin contrasting stripe
+    const u = ((r + c + drift) % 26 + 26) % 26;
+    return u < 11 ? 120 : u < 13 ? 8 : u < 15 ? 235 : u < 17 ? 8 : 30;
+  }
+  if (k === 1) {                                              // pin dots, staggered, twinkling slowly
+    const rr = r + (drift >> 2), off = ((rr / 6) | 0) & 1 ? 2 : 0;
+    const dot = rr % 6 === 0 && (((c + 20 + off) % 4) === 0);
+    return dot ? 90 + ((SIN[(r * 9 + c * 31 + (t >> 4)) & 255] * 165) >> 8) : 10;
+  }
+  if (k === 2) {                                              // herringbone
+    const rr = r + (drift >> 1), band = (rr / 7) | 0, u = (band & 1) ? rr + c : rr - c;
+    return ((u % 4) + 4) % 4 < 2 ? 140 : 18;
+  }
+  const rr = r + (drift >> 1), dx = Math.abs(((c + 24) % 8) - 4), dy = Math.abs((rr % 8) - 4);   // foulard diamonds
+  return dx + dy === 4 ? 190 : (dx + dy === 0 ? 120 : 12);
+}
+
+show("Embers", "Glowing coals drifting up the tie on a slow noise field, over a faint warm bed.",
+  (out, t, s) => {
+    for (let i = 0; i < N; i++) {
+      const n = vnoise(COL[i] * 64 + 4000, ROW[i] * 40 + (t >> 3), (t / 4000) | 0);
+      out[i] = n > 110 ? ((n - 110) * 100) >> 8 : 0;          // faint warm bed
+    }
+    for (let k = 0; k < 2; k++) if (s.p.length < 160) s.p.push({ y: ((rnd() % ROWS) << 8), x: (rand8() % COLS + C_MIN) << 8,
+      vy: 26 + (rand8() & 31), life: 200 + (rand8() & 55), hot: 190 + (rand8() % 66) });
+    for (const p of s.p) {
+      p.y -= p.vy; p.life -= 1;
+      p.x += ((SIN[((p.y >> 6) + (t >> 5)) & 255] - 128) >> 4);    // sway on the noise field
+      const r = p.y >> 8, c = Math.round(p.x / 256);
+      const fl = (p.hot * (192 + (rand8() >> 2))) >> 8, v = (fl * p.life) >> 8;
+      const i0 = at(r, c), i1 = at(r + 1, c), i2 = at(r + 2, c);
+      if (i0 >= 0) out[i0] = Math.max(out[i0], v);
+      if (i1 >= 0) out[i1] = Math.max(out[i1], v >> 1);
+      if (i2 >= 0) out[i2] = Math.max(out[i2], v >> 3);
+    }
+    s.p = s.p.filter(p => p.life > 0 && p.y > 0);
+  }, () => ({ p: [] }));
+
+show("Heartbeat", "A soft double pulse (lub-dub) travelling from the knot to the tip, about 55 beats a minute.",
+  (out, t) => {
+    const P = 1100, ph = t % P;
+    for (let i = 0; i < N; i++) {
+      let v = 22;
+      for (const [d, a] of [[0, 255], [230, 170]]) {
+        const front = ((ph - d) * 36) / 100;                     // rows: whole tie in ~600 ms
+        const dist = Math.abs(ROW[i] - front);
+        if (ph >= d && dist < 20) v += (((20 - dist) * 12 * a) >> 8) * (256 - ((ROW[i] * 80 / R_MAX) | 0)) >> 8;
+      }
+      out[i] = clamp8(v | 0);
+    }
+  });
+
+show("Rain", "Thin streaks falling down the blade at different speeds.",
+  (out, t, s) => {
+    out.fill(0);
+    if ((rnd() & 1) === 0) s.d.push({ c: (rand8() % COLS) + C_MIN, y: -(rand8() << 2), v: 180 + (rand8() % 220), len: 6 + (rand8() & 7) });
+    for (const d of s.d) {
+      d.y += d.v;
+      const head = d.y >> 8;
+      for (let k = 0; k < d.len; k++) {
+        const i = at(head - k, d.c);
+        if (i >= 0) out[i] = Math.max(out[i], 230 - ((k * 230) / d.len | 0));
+      }
+    }
+    s.d = s.d.filter(d => (d.y >> 8) - d.len < ROWS);
+  }, () => ({ d: [] }));
+
+show("Plasma", "Slow interference waves rolling across the tie.",
+  (out, t) => {
+    for (let i = 0; i < N; i++) {
+      const r = ROW[i], c = COL[i];
+      const v = (SIN[(c * 14 + (t / 11 | 0)) & 255] + SIN[(r * 5 - (t / 17 | 0)) & 255] +
+                 SIN[((r + c * 3) * 3 + (t / 7 | 0)) & 255] + SIN[(SIN[(r * 2 + (t / 29 | 0)) & 255] + c * 9) & 255]) >> 2;
+      out[i] = (v * v) >> 8;
+    }
+  });
+
+show("Flame", "Fire rising from the tip, kept low and slow (heat diffusion on the LED grid).",
+  (out, t, s) => {
+    const H = s.h;
+    if ((s.n++ & 1) === 0) {                                      // fire runs at 25 fps
+      for (let c = 0; c < COLS; c++) {
+        const b = BOTTOM[c]; if (b < 0) continue;
+        for (let r = TOPROW[c]; r <= b; r++) { const k = r * COLS + c; H[k] = Math.max(0, H[k] - (rand8() % 15)); }   // cool
+        for (let r = TOPROW[c]; r < b - 1; r++) {                 // heat drifts towards the knot (smaller row)
+          const k = r * COLS + c, l = c > 0 ? H[(r + 1) * COLS + c - 1] : H[(r + 1) * COLS + c], rr = c < COLS - 1 ? H[(r + 1) * COLS + c + 1] : H[(r + 1) * COLS + c];
+          H[k] = (H[(r + 1) * COLS + c] * 2 + H[(r + 2) * COLS + c] + l + rr) / 5 | 0;
+        }
+        if (rand8() < 110) { const r = b - (rand8() % 3); H[r * COLS + c] = 160 + (rand8() % 96); }   // sparks at the tip
+      }
+    }
+    for (let i = 0; i < N; i++) { const h = H[ROW[i] * COLS + (COL[i] - C_MIN)]; out[i] = h > 30 ? ((h - 30) * 290) >> 8 : 0; }
+  }, () => ({ h: new Uint8Array(ROWS * COLS), n: 0 }));
+
+show("Comet", "One bright spark bouncing between the edges on its way down, with a long fading tail.",
+  (out, t, s) => {
+    for (let i = 0; i < N; i++) out[i] = (s.tr[i] * 247) >> 8;      // long tail
+    s.y += 60; s.x += s.vx;                                        // Q8 rows / cols per frame
+    const r = s.y >> 8, hw = HALFW[Math.min(Math.max(r, 0), R_MAX)] << 8;
+    if (s.x > hw) { s.x = hw; s.vx = -s.vx; } else if (s.x < -hw) { s.x = -hw; s.vx = -s.vx; }
+    if (r > R_MAX + 6) { s.y = 0; s.x = 0; s.vx = (rnd() & 1) ? 70 : -70; }
+    const c = Math.round(s.x / 256);
+    for (const [dr, dc, v] of [[0, 0, 255], [1, 0, 200], [-1, 0, 200], [0, 1, 200], [0, -1, 200], [1, 1, 120], [-1, -1, 120], [1, -1, 120], [-1, 1, 120]]) {
+      const i = at(r + dr, c + dc); if (i >= 0) out[i] = Math.max(out[i], v);
+    }
+    s.tr.set(out);
+  }, () => ({ tr: new Uint8Array(N), x: 0, y: 0, vx: 70 }));
+
+// ============================================================ hardware model (numbers from docs/power_model.py)
+const HW = { iPeak: 18.6 / 3.9, blank: 0.95, scan: 16, overhead: 54.3, usable: 1500 * 0.85, cap: 0.25, vbat: 3.7 };
+HW.iFull = HW.iPeak / HW.scan * HW.blank;                    // mA per LED at duty 255
+const BRIGHT = [256, 154, 90];                               // OE dimming steps (Q8)
+
+// ============================================================ state
+const st = {
+  t: 0, cur: 1, prev: -1, xfade: 256, auto: true, fast: false, lastSwitch: 0,
+  on: true, power: 256, bright: 0,
+  dist: 200, tof: 200, near: false, nearMs: 0, farMs: 0, mix: 0, lastTof: 0,
+  view: "fabric", loupeY: 260,
+};
+const showState = SHOWS.map(s => s.init());
+const bufA = new Uint8Array(N), bufB = new Uint8Array(N), bufC = new Uint8Array(N), duty = new Uint8Array(N);
+const lineMa = new Float32Array(16);
+let capOn = false, iLedNow = 0;
+
+function step(dt) {
+  st.t += dt;
+  const t = st.t;
+  // ---- proximity: ToF at 10 Hz with noise, hysteresis timers
+  if (t - st.lastTof >= 100) {
+    st.lastTof = t;
+    st.tof = st.dist + ((rand8() - 128) * 1.5 / 128);
+    if (!st.near) { st.nearMs = st.tof < 60 ? st.nearMs + 100 : 0; if (st.nearMs >= 1500) { st.near = true; st.farMs = 0; } }
+    else { st.farMs = st.tof > 90 ? st.farMs + 100 : 0; if (st.farMs >= 5000) { st.near = false; st.nearMs = 0; } }
+  }
+  st.mix = Math.max(0, Math.min(256, st.mix + (st.near ? 1 : -1) * (256 * dt / 2000)));
+  // ---- auto-cycle (shows 1..7; Breathe is the calm mode)
+  const period = st.fast ? 20000 : 120000;
+  if (st.auto && !st.near && t - st.lastSwitch >= period) nextShow();
+  // ---- render shows
+  SHOWS[st.cur].frame(bufA, t, showState[st.cur], dt);
+  if (st.xfade < 256 && st.prev >= 0) {
+    SHOWS[st.prev].frame(bufB, t, showState[st.prev], dt);
+    for (let i = 0; i < N; i++) bufA[i] = lerp8(bufB[i], bufA[i], st.xfade);
+    st.xfade = Math.min(256, st.xfade + (256 * dt / 1000));
+  }
+  const m = st.mix | 0;
+  if (m > 0) { SHOWS[0].frame(bufC, t, showState[0], dt); for (let i = 0; i < N; i++) bufA[i] = lerp8(bufA[i], bufC[i], m); }
+  // ---- power fade, brightness (OE), gamma, current cap
+  st.power = Math.max(0, Math.min(256, st.power + (st.on ? 1 : -1) * (256 * dt / 500)));
+  const gain = (BRIGHT[st.bright] * st.power) >> 8;
+  let sum = 0;
+  for (let i = 0; i < N; i++) { const d = (GAMMA[bufA[i]] * gain) >> 8; duty[i] = d; sum += d; }
+  const allowed = N * 255 * HW.cap;
+  capOn = sum > allowed;
+  if (capOn) { const k = Math.floor(allowed * 256 / sum); sum = 0; for (let i = 0; i < N; i++) { duty[i] = (duty[i] * k) >> 8; sum += duty[i]; } }
+  iLedNow = sum / 255 * HW.iFull;
+  lineMa.fill(0);
+  for (let i = 0; i < N; i++) lineMa[SCAN[i]] += duty[i] / 255 * HW.iPeak;
+}
+
+function nextShow(k) {
+  const n = k !== undefined ? k : (st.cur % (SHOWS.length - 1)) + 1;
+  if (n === st.cur) return;
+  st.prev = st.cur; st.cur = n; st.xfade = 0; st.lastSwitch = st.t;
+  showState[n] = SHOWS[n].init();
+  updateUi();
+}
+
+// ============================================================ drawing
+const tieC = document.getElementById("tie"), loupeC = document.getElementById("loupe");
+const tctx = tieC.getContext("2d"), lctx = loupeC.getContext("2d");
+const GLOW = new Map();                                     // one offscreen glow canvas per view
+const Y_TOP = -38, Y_BOT = M.flex_len + 6;                    // mm drawn: collar + knot above the flex top
+const FAB = 2.0;                                             // fabric blade overhang each side, mm
+
+function tiePath(ctx, s, ox, oy) {                           // fabric blade outline (flex outline + overhang)
+  const o = M.outline, w0 = M.w_top / 2 + FAB, w1 = M.w_max / 2 + FAB, ys = o[3][1];
+  ctx.beginPath();
+  ctx.moveTo(ox - w0 * s, oy + 30 * s); ctx.lineTo(ox + w0 * s, oy + 30 * s);
+  ctx.lineTo(ox + w1 * s, oy + ys * s); ctx.lineTo(ox, oy + (M.flex_len + FAB * 1.4) * s); ctx.lineTo(ox - w1 * s, oy + ys * s);
+  ctx.closePath();
+}
+function knot(ctx, s, ox, oy) {
+  ctx.fillStyle = "#141216";                                 // collar band
+  ctx.fillRect(ox - 34 * s, oy - 38 * s, 68 * s, 12 * s);
+  const g = ctx.createLinearGradient(ox - 22 * s, 0, ox + 22 * s, 0);
+  g.addColorStop(0, "#0c0b0d"); g.addColorStop(0.5, "#1d1a20"); g.addColorStop(1, "#0c0b0d");
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.moveTo(ox - 22 * s, oy - 30 * s); ctx.lineTo(ox + 22 * s, oy - 30 * s);
+  ctx.lineTo(ox + 15 * s, oy + 42 * s); ctx.quadraticCurveTo(ox, oy + 48 * s, ox - 15 * s, oy + 42 * s);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = "#2a252e"; ctx.lineWidth = Math.max(1, 0.4 * s); ctx.stroke();
+  ctx.fillStyle = "#050405";                                 // ToF window
+  ctx.beginPath(); ctx.arc(ox, oy + 36 * s, Math.max(1.5, 1.6 * s), 0, 7); ctx.fill();
+}
+function weave(ctx, s, w, h) {                               // fine twill over the blade
+  ctx.save(); ctx.globalAlpha = 0.18; ctx.strokeStyle = "#000"; ctx.lineWidth = Math.max(0.5, 0.35 * s);
+  const stepPx = Math.max(2, 0.9 * s);
+  ctx.beginPath();
+  for (let x = -h; x < w; x += stepPx) { ctx.moveTo(x, 0); ctx.lineTo(x + h, h); }
+  ctx.stroke(); ctx.restore();
+}
+function ledColor(d) {                                       // duty 0..255 -> display colour (encode linear light)
+  const v = Math.pow(d / 255, 1 / 2.2);
+  const r = 255 * Math.min(1, v * 1.15), g = 255 * Math.max(0, v - 0.55) * 0.9 + 30 * v, b = 30 * v;
+  return `rgb(${r | 0},${g | 0},${b | 0})`;
+}
+
+function drawTie(ctx, W, H, s, ox, oy, view) {
+  ctx.fillStyle = "#08070a"; ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  tiePath(ctx, s, ox, oy);
+  ctx.fillStyle = view === "bare" ? "#121013" : "#0f0d10"; ctx.fill();
+  ctx.clip();
+  if (view === "bare") {                                      // black coverlay + 0603 LEDs at 45 deg
+    for (let i = 0; i < N; i++) {
+      const x = ox + LX[i] * s, y = oy + LY[i] * s;
+      if (y < -4 || y > H + 4) continue;
+      ctx.save(); ctx.translate(x, y); ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = duty[i] ? ledColor(duty[i]) : "#2b2729";
+      ctx.fillRect(-0.8 * s, -0.4 * s, 1.6 * s, 0.8 * s);
+      ctx.restore();
+    }
+  } else if (view === "duty") {
+    const p = M.pitch * s;
+    for (let i = 0; i < N; i++) {
+      const v = duty[i];
+      ctx.fillStyle = `rgb(${v},${(v * 0.45) | 0},${(v * 0.2) | 0})`;
+      ctx.fillRect(ox + LX[i] * s - p / 2, oy + LY[i] * s - p / 2, p + 0.5, p + 0.5);
+    }
+  } else {                                                    // through fabric: diffused glow, 35 % transmission
+    if (!GLOW.has(ctx)) { const c = document.createElement("canvas"); GLOW.set(ctx, [c, c.getContext("2d")]); }
+    const [glowC, gctx] = GLOW.get(ctx);
+    if (glowC.width !== W || glowC.height !== H) { glowC.width = W; glowC.height = H; }
+    gctx.clearRect(0, 0, W, H);
+    const rr = Math.max(0.6, 0.7 * s);
+    for (let i = 0; i < N; i++) {
+      if (!duty[i]) continue;
+      const y = oy + LY[i] * s; if (y < -10 || y > H + 10) continue;
+      gctx.fillStyle = ledColor(duty[i]);
+      gctx.fillRect(ox + LX[i] * s - rr, y - rr, rr * 2, rr * 2);
+    }
+    ctx.globalCompositeOperation = "lighter";
+    ctx.filter = `blur(${Math.max(0.6, 0.45 * s)}px) brightness(1.7)`;     // the pixel, softened by 1.5 mm spacer
+    ctx.globalAlpha = 0.9; ctx.drawImage(glowC, 0, 0);
+    ctx.filter = `blur(${Math.max(1.5, 1.7 * s)}px) brightness(1.8)`;      // halo spread in the cloth
+    ctx.globalAlpha = 0.55; ctx.drawImage(glowC, 0, 0);
+    ctx.filter = "none"; ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over";
+    weave(ctx, s, W, H);
+  }
+  ctx.restore();
+  tiePath(ctx, s, ox, oy); ctx.strokeStyle = "#2a252e"; ctx.lineWidth = 1; ctx.stroke();
+  knot(ctx, s, ox, oy);
+}
+
+function fit(c) {
+  const r = c.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+  if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+  return dpr;
+}
+function sizeTie() {
+  const h = tieC.parentElement.getBoundingClientRect().height;
+  const s = h / (Y_BOT - Y_TOP);
+  tieC.style.width = Math.ceil(76 * s) + "px";
+  tieC.style.height = h + "px";
+}
+function draw() {
+  let dpr = fit(tieC);
+  const sT = tieC.height / (Y_BOT - Y_TOP);
+  drawTie(tctx, tieC.width, tieC.height, sT, tieC.width / 2, -Y_TOP * sT, "fabric" === st.view ? "fabric" : st.view);
+  const half = 32;                                            // loupe window marker
+  tctx.strokeStyle = "#ff4a2e88"; tctx.lineWidth = Math.max(1, dpr);
+  tctx.strokeRect(tieC.width / 2 - 30 * sT, (st.loupeY - half - Y_TOP) * sT, 60 * sT, 2 * half * sT);
+  dpr = fit(loupeC);
+  const sL = loupeC.height / (2 * half + 6);
+  drawTie(lctx, loupeC.width, loupeC.height, sL, loupeC.width / 2, (half + 3 - st.loupeY) * sL, st.view);
+  document.getElementById("loupeTag").textContent = `Loupe · ${Math.round(st.loupeY - half)}–${Math.round(st.loupeY + half)} mm from the flex top · ${st.view === "fabric" ? "through fabric" : st.view === "bare" ? "bare flex" : "8-bit duty per LED"}`;
+}
+
+// ============================================================ UI
+const $ = id => document.getElementById(id);
+const showsEl = $("shows");
+SHOWS.forEach((s, k) => {
+  const b = document.createElement("button");
+  b.textContent = `${k + 1}  ${s.name}`; b.dataset.k = k;
+  b.addEventListener("click", () => { if (k === 0) { st.dist = 30; $("dist").value = 30; } else nextShow(k); });
+  showsEl.appendChild(b);
+});
+$("autoBtn").addEventListener("click", e => { st.auto = !st.auto; e.currentTarget.setAttribute("aria-pressed", st.auto); updateUi(); });
+$("fastBtn").addEventListener("click", e => { st.fast = !st.fast; e.currentTarget.setAttribute("aria-pressed", st.fast); updateUi(); });
+$("dist").addEventListener("input", e => { st.dist = +e.target.value; });
+document.querySelectorAll("[data-d]").forEach(b => b.addEventListener("click", () => { st.dist = +b.dataset.d; $("dist").value = st.dist; }));
+document.querySelectorAll("#viewSeg [data-v]").forEach(b => b.addEventListener("click", () => {
+  st.view = b.dataset.v; document.querySelectorAll("#viewSeg [data-v]").forEach(x => x.setAttribute("aria-pressed", x === b)); }));
+tieC.addEventListener("click", e => {
+  const r = tieC.getBoundingClientRect(), mm = (e.clientY - r.top) / r.height * (Y_BOT - Y_TOP) + Y_TOP;
+  st.loupeY = Math.max(32, Math.min(M.flex_len - 26, mm));
+});
+
+// button: same timing logic the firmware would run on the GPIO (debounced edges in ms)
+const btn = { down: false, tDown: 0, held: false, clicks: 0, tUp: 0 };
+function btnPress() { if (btn.down) return; btn.down = true; btn.tDown = st.t; btn.held = false; $("hwBtn").classList.add("down"); }
+function btnRelease() {
+  if (!btn.down) return; btn.down = false; $("hwBtn").classList.remove("down");
+  if (btn.held) return;
+  btn.clicks++; btn.tUp = st.t;
+}
+function btnTick() {
+  if (btn.down && !btn.held && st.t - btn.tDown >= 2000) { btn.held = true; btn.clicks = 0; st.on = !st.on; updateUi(); }
+  if (!btn.down && btn.clicks && st.t - btn.tUp > 300) {
+    if (st.on) { if (btn.clicks >= 2) st.bright = (st.bright + 1) % 3; else nextShow(); }
+    btn.clicks = 0; updateUi();
+  }
+}
+const hb = $("hwBtn");
+hb.addEventListener("pointerdown", e => { e.preventDefault(); hb.setPointerCapture(e.pointerId); btnPress(); });
+hb.addEventListener("pointerup", btnRelease); hb.addEventListener("pointercancel", btnRelease);
+window.addEventListener("keydown", e => {
+  if (e.code === "Space" && !e.repeat) { e.preventDefault(); btnPress(); }
+  const k = +e.key; if (k >= 1 && k <= SHOWS.length && !e.repeat) showsEl.children[k - 1].click();
+});
+window.addEventListener("keyup", e => { if (e.code === "Space") { e.preventDefault(); btnRelease(); } });
+
+const bars = $("bars");
+for (let i = 0; i < 16; i++) { const b = document.createElement("i"); b.title = `SCAN${i}`; bars.appendChild(b); }
+
+function updateUi() {
+  const s = SHOWS[st.cur];
+  const calm = st.mix > 128;
+  $("showName").textContent = !st.on ? "Off" : calm ? "Breathe" : s.name;
+  $("showDesc").textContent = !st.on ? "Hold the button 2 s to switch on. Off-state drain ≈ 5 µA." : calm ? SHOWS[0].desc : s.desc;
+  [...showsEl.children].forEach((b, k) => b.setAttribute("aria-pressed", k === (calm ? 0 : st.cur)));
+  $("cycleInfo").textContent = st.auto ? `next in ${Math.max(0, Math.ceil(((st.fast ? 20000 : 120000) - (st.t - st.lastSwitch)) / 1000))} s` : "manual";
+  $("btnInfo").textContent = `${st.on ? "on" : "off"} · brightness ${[100, 60, 35][st.bright]} %`;
+}
+function updateReadouts() {
+  const fill = iLedNow / (N * HW.iFull);
+  const over = st.on || st.power > 0 ? HW.overhead : 0.005;
+  const tot = iLedNow + over;
+  $("fill").textContent = (fill * 100).toFixed(1) + " %";
+  $("iLed").textContent = iLedNow.toFixed(0) + " mA";
+  $("iOver").textContent = over >= 1 ? over.toFixed(1) + " mA" : "5 µA (off)";
+  $("iTot").textContent = `${tot.toFixed(0)} mA · ${(tot * HW.vbat / 1000).toFixed(2)} W`;
+  $("life").textContent = over < 1 ? "years (self-discharge)" : (HW.usable / tot).toFixed(1) + " h";
+  let mx = 0; for (let i = 0; i < 16; i++) mx = Math.max(mx, lineMa[i]);
+  $("iLine").textContent = mx.toFixed(0) + " mA";
+  const scale = Math.max(400, mx);
+  [...bars.children].forEach((b, i) => { b.style.height = (lineMa[i] / scale * 100) + "%"; });
+  const cp = $("capPill"); cp.textContent = capOn ? "25 % cap active" : "cap idle"; cp.className = "pill" + (capOn ? " on" : "");
+  $("tof").textContent = st.tof.toFixed(1) + " cm";
+  $("mixOut").textContent = Math.round(st.mix / 2.56) + " %";
+  $("proxState").textContent = st.near ? (st.farMs ? `close · leaving in ${((5000 - st.farMs) / 1000).toFixed(1)} s` : "close · calm mode")
+                                       : (st.nearMs ? `approaching · ${((1500 - st.nearMs) / 1000).toFixed(1)} s` : "nobody close");
+  const pct = d => ((d - 10) / 190 * 100) + "%";
+  $("proxDot").style.left = pct(st.dist);
+  $("zoneNear").style.left = 0; $("zoneNear").style.width = pct(60);
+  $("mark60").style.left = pct(60); $("mark90").style.left = pct(90); $("lbl60").style.left = pct(60); $("lbl90").style.left = pct(90);
+}
+
+// ============================================================ main loop: fixed 20 ms steps (50 fps), as on the MCU
+let last = performance.now(), acc = 0, uiTick = 0;
+function loop(now) {
+  acc += Math.min(200, now - last); last = now;
+  while (acc >= 20) { step(20); btnTick(); acc -= 20; }
+  draw();
+  if (++uiTick % 6 === 0) { updateReadouts(); updateUi(); }
+  requestAnimationFrame(loop);
+}
+window.addEventListener("resize", sizeTie);
+sizeTie(); updateUi(); updateReadouts();
+requestAnimationFrame(loop);
+window.__ember = { draw, st, duty, SHOWS, N, step, btnPress, btnRelease, btnTick, nextShow, iLed: () => iLedNow, lineMa };              // for checks from the console
+</script>
+</body>
+</html>

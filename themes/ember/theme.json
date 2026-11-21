@@ -1,0 +1,35 @@
+{
+  "name": "ember",
+  "title": "Ember (LED-matrix tie)",
+  "description": "An LED-tie look: a multiplexed-matrix wipe that writes the next slide scan line by scan line, a slide that grows out of the knot in the shape of a necktie, a spark that runs round a card and lights it, embers drifting up a dark slide, and stitches along a seam as progress.",
+  "author": "machmar (made with Claude)",
+  "tags": [
+    "electronics",
+    "fashion",
+    "glow",
+    "led"
+  ],
+  "provides": {
+    "transitions": [
+      "scan-mux",
+      "tie-drop"
+    ],
+    "effects": [
+      "spark"
+    ],
+    "ambients": [
+      "embers"
+    ],
+    "dots": [
+      "stitch-dots"
+    ]
+  },
+  "options": {
+    "data-ember-rows": "rows of the scan-mux wipe, rounded to a multiple of 16 (default 64)"
+  },
+  "accent": "#FF4A2E",
+  "preview": {
+    "spark": "<div class=\"card\" data-fx=\"spark\"><p class=\"big\">13,6 h</p></div>"
+  },
+  "demo": "demo/Ember-demo/deck.html"
+}
