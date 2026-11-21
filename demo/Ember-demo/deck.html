@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ember</title>
+<!-- Source of the talk. Build the single-file version from this folder with:
+     python ../../build.py deck.html -o Ember.html
+     The live simulator slide loads ../simulator/index.html next to this folder (no server needed). -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Nunito+Sans:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../../engine.css">
+<script src="../../themes/ember/theme.js" defer></script>
+<script src="../../themes/pixelpine/theme.js" defer></script>
+<script src="../../engine.js" defer></script>
+<style>
+  .se-slide { font-family: 'Nunito Sans', Arial, sans-serif; }
+  .se-slide :where(th, td) { border-bottom-color: rgba(27, 26, 29, .14); }
+  .light { background: #F4EFEA; color: #1B1A1D; padding: 104px 128px; display: flex; flex-direction: column; gap: 44px; }
+  .dark { background: #121014; color: #F4EFEA; padding: 128px; display: flex; flex-direction: row; align-items: center; gap: 96px; }
+  h1, h2 { font-family: 'Nunito', Arial, sans-serif; font-weight: 800; }
+  h2 { font-size: 64px; line-height: 1.15; }
+  .t { font-size: 40px; line-height: 1.35; }
+  .l { font-size: 32px; line-height: 1.35; }
+  .dim { color: #5A5258; }
+  .num { font-family: 'Nunito', Arial, sans-serif; font-size: 64px; font-weight: 800; line-height: 1.1; color: #C8321C; }
+  .card { display: flex; flex-direction: column; gap: 8px; background: #FFFBF7; border: 2px solid #E6DAD2; border-radius: 24px; padding: 30px 38px; }
+  .row { display: flex; flex-direction: row; gap: 40px; }
+  .kicker { font-size: 32px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #FF6A4E; }
+  ul.t, ol.l { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: 22px; }
+  .frame { border-radius: 24px; border: 2px solid #E6DAD2; background: #FFFFFF; overflow: hidden; }
+  table.cost { border-collapse: collapse; font-size: 32px; }
+  table.cost th, table.cost td { padding: 10px 28px; text-align: right; }
+  table.cost th:first-child, table.cost td:first-child { text-align: left; }
+  table.cost thead th { color: #7A2414; }
+
+  /* live simulator: the page is laid out at 1440 x 810 and scaled 4/3, so its text reads on a projector */
+  .live-box { position: absolute; inset: 0; background: #0e0d0f; overflow: hidden; }
+  .live-box iframe { position: absolute; left: 0; top: 0; width: 1440px; height: 810px; border: 0; transform: scale(1.3333); transform-origin: 0 0; }
+  .live-off { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; color: #F4EFEA; text-align: center; padding: 160px; }
+  .live-off.hide { display: none; }
+</style>
+</head>
+<body data-accent="#FF4A2E" data-lang="cs" data-dots="stitch-dots">
+
+<!-- 1 · title -->
+<section id="cover" data-ambient="embers" class="dark">
+  <div style="flex:1; display:flex; flex-direction:column; gap:40px">
+    <p class="kicker">KTE · projekt 5a</p>
+    <h1 style="font-size:128px; line-height:1">Ember</h1>
+    <p class="t" style="color:#E6DCD5">Kravata s 3 699 červenými LED pod látkou. Když je někdo blízko, zklidní se a jen pomalu dýchá.</p>
+  </div>
+  <img data-fx="power" src="media/flex_vertical.png" alt="Celá flexibilní deska kravaty s LED" style="height:880px; width:auto">
+  <aside>Dobrý den. Zadání znělo: svítící motýlek, který se ztlumí, když je nositel blízko jiného člověka, třeba při tanci. Motýlky nemám rád, takže jsem udělal kravatu. Jmenuje se Ember.
+
+Napravo je celá deska: jedna flexibilní deska plošných spojů, skoro půl metru dlouhá, s 3 699 červenými LED. Nahoře je řídicí část, která se schová do uzlu.
+
+Když jsem sám, kravata ukazuje vzory. Když se ke mně někdo přiblíží, přejde do jednoho pomalého, tlumeného dýchání.</aside>
+</section>
+
+<!-- 2 · brief and construction -->
+<section id="brief" data-enter="tie-drop" class="light" style="flex-direction:row; align-items:center; gap:72px">
+  <div style="flex:1; display:flex; flex-direction:column; gap:44px">
+    <h2>Motýlek → kravata</h2>
+    <ul class="t">
+      <li>Sám: pestré vzory, aby kravata zaujala</li>
+      <li>Někdo do 60 cm: tlumené dýchání jednou barvou</li>
+      <li>Vypnutá vypadá jako obyčejná černá kravata</li>
+    </ul>
+  </div>
+  <svg viewBox="0 0 900 760" width="900" height="760" role="img" aria-label="Vrstvy kravaty: látka, distanční pěna, flex s LED, podšívka s baterií">
+    <g font-family="Nunito Sans, Arial" font-size="32" fill="#1B1A1D">
+      <g transform="translate(40 40)">
+        <path d="M0 60 L300 0 L460 40 L160 100 Z" fill="#26222A" opacity=".92"/>
+        <text x="500" y="56" font-weight="700">Černá látka</text>
+        <text x="500" y="98" fill="#5A5258">poloprůsvitná</text>
+      </g>
+      <g transform="translate(40 210)">
+        <path d="M0 60 L300 0 L460 40 L160 100 Z" fill="#E9E1DA" stroke="#C9BEB5" stroke-width="2"/>
+        <text x="500" y="56" font-weight="700">Pěna 1,5 mm</text>
+        <text x="500" y="98" class="dim" fill="#5A5258">rozmaže pixel do záře</text>
+      </g>
+      <g transform="translate(40 380)">
+        <path d="M0 60 L300 0 L460 40 L160 100 Z" fill="#1F3B2C"/>
+        <g fill="#FF4A2E">
+          <circle cx="110" cy="58" r="7"/><circle cx="160" cy="48" r="7"/><circle cx="210" cy="38" r="7"/><circle cx="260" cy="28" r="7"/>
+          <circle cx="170" cy="72" r="7"/><circle cx="220" cy="62" r="7"/><circle cx="270" cy="52" r="7"/><circle cx="320" cy="42" r="7"/>
+          <circle cx="230" cy="86" r="7"/><circle cx="280" cy="76" r="7"/><circle cx="330" cy="66" r="7"/><circle cx="380" cy="56" r="7"/>
+        </g>
+        <text x="500" y="56" font-weight="700">Flex DPS s 3 699 LED</text>
+        <text x="500" y="98" fill="#5A5258">vyndavací vložka</text>
+      </g>
+      <g transform="translate(40 550)">
+        <path d="M0 60 L300 0 L460 40 L160 100 Z" fill="#3A343D"/>
+        <rect x="150" y="30" width="150" height="34" rx="6" fill="#8A8F96" transform="skewY(-11)"/>
+        <text x="500" y="56" font-weight="700">Podšívka + baterie</text>
+        <text x="500" y="98" fill="#5A5258">LiPo 1 500 mAh</text>
+      </g>
+    </g>
+  </svg>
+  <aside>Kravata je předvázaná, na zip, takže se nic neváže: uzel je pevný a zip kolem límce se jen dotáhne.
+
+Uvnitř jsou čtyři vrstvy. Navrchu poloprůsvitná černá látka, pod ní pěna tlustá jeden a půl milimetru, která každý pixel rozmaže do měkké záře. Pak flexibilní deska s LED a nakonec podšívka s kapsou na baterii.
+
+Deska je vyndavací vložka, takže se látka dá vyčistit. Senzor vzdálenosti, tlačítko a USB-C jsou v uzlu. Vypnutá kravata vypadá jako obyčejná černá kravata.</aside>
+</section>
+
+<!-- 3 · the flex -->
+<section id="flex" data-enter="scan-mux" class="light">
+  <h2>Jedna flex deska 34–50 × 488 mm</h2>
+  <img data-fx="spin3d" src="media/flex_top.png" alt="Flexibilní deska shora: uzel vpravo, špička vlevo" style="width:1664px; height:auto">
+  <div class="row">
+    <div class="card" style="flex:1"><p class="num">3 699</p><p class="l">LED 0603 na mřížce 2,1 mm</p></div>
+    <div class="card" style="flex:1"><p class="num">45°</p><p class="l">pootočené, aby se vešly</p></div>
+    <div class="card" style="flex:1"><p class="num">2</p><p class="l">vrstvy flexu, limit JLC 490 mm</p></div>
+    <div class="card" style="flex:1"><p class="num">15</p><p class="l">budičů na zadní straně</p></div>
+  </div>
+  <aside>Tohle je deska. Uzel s řídicí elektronikou je vpravo, špička vlevo. Délka 488 milimetrů je těsně pod limitem dvouvrstvého flexu u JLC, který je 490 milimetrů.
+
+LED jsou ve stejné hustotě jako u stromečku z prvního projektu, rozteč 2,1 milimetru, celkem 3 699 kusů. Běžné pouzdro 0603 se na tuhle rozteč nevejde, takže jsou LED pootočené o 45 stupňů: jejich plošky pak míří na diagonální sousedy, kteří jsou tři milimetry daleko.
+
+Vpředu jsou jen LED, patnáct budičů je na zadní straně.</aside>
+</section>
+
+<!-- 4 · LED matrix -->
+<section id="matrix" data-enter="led-diagonal" class="light" style="flex-direction:row; align-items:center; gap:64px">
+  <div class="frame" style="width:980px; height:600px; flex:none">
+    <img data-fx="scan" src="media/sch_tile.svg" alt="Výřez schématu: budič SM16306 a roh matice LED" style="width:100%; height:100%; object-fit:contain">
+  </div>
+  <div style="flex:1; display:flex; flex-direction:column; gap:40px">
+    <h2>Matice 1/16</h2>
+    <ol class="l">
+      <li>16 řádků spíná 16 PMOS z baterie, vybírají je 2× 74HC138</li>
+      <li>15× SM16306: 240 kanálů s konstantním proudem 4,8 mA</li>
+      <li>RP2350 posílá data přes PIO ve 4 řetězcích: 1 kHz, 8 bitů</li>
+    </ol>
+  </div>
+  <aside>Takhle se řídí 3 699 LED. Je to stejná matice, jakou mají běžné LED panely. Šestnáct řádků spínají tranzistory PMOS přímo z baterie a vybírají je dva dekodéry.
+
+Sloupce jsou patnáct budičů SM16306. Každý má šestnáct kanálů s konstantním proudem a je to posuvný registr. Jas proto nezávisí na stavu baterie.
+
+Mikrokontrolér RP2350 posílá data přes svůj programovatelný periferní blok PIO ve čtyřech řetězcích najednou. Obnova je jeden kilohertz s osmibitovým jasem, takže kravata na kameře mobilu nebliká.
+
+Vlevo je výřez schématu: budič a roh jeho šestnáct krát šestnáct LED.</aside>
+</section>
+
+<!-- 5 · live simulator -->
+<section id="simlive" data-enter="zoom" data-click="off" data-dots="off" style="background:#0e0d0f; padding:0; display:block">
+  <div class="live-box" data-fx="none">
+    <div class="live-off">
+      <p class="t" style="font-weight:700">Simulátor se načítá…</p>
+      <p class="l" style="color:#9A9198">Hledá se <b>sim/index.html</b> vedle prezentace.</p>
+    </div>
+  </div>
+  <aside>Teď simulátor naživo. Kravata vlevo je spočítaná ze skutečných pozic LED na desce. Animace jsou napsané v celých číslech, aby šly přímo přepsat do firmwaru.
+
+Posuvníkem nastavím vzdálenost člověka přede mnou. Když se přiblíží na šedesát centimetrů a vydrží tam půl druhé sekundy, kravata se za dvě sekundy prolne do dýchání. Když odejde dál než na devadesát centimetrů a zůstane tam pět sekund, vrátí se vzory.
+
+Když panel vpravo posunu dolů, je tam elektrický model: proud LED, proud z baterie a výdrž baterie při právě běžící show.</aside>
+</section>
+
+<!-- 6 · power -->
+<section id="power" data-enter="tie-drop" class="light">
+  <h2>Celý večer na jedno nabití</h2>
+  <div class="row" style="align-items:flex-start; gap:56px">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:28px; width:900px; flex:none">
+      <div class="card" data-fx="spark"><p class="num">94 mA</p><p class="l">průměr typického večera</p></div>
+      <div class="card" data-fx="spark"><p class="num">13,6 h</p><p class="l">z baterie 1 500 mAh</p></div>
+      <div class="card" data-fx="spark"><p class="num">316 mA</p><p class="l">strop firmwaru (25 % jasu)</p></div>
+      <div class="card" data-fx="spark"><p class="num">130 mA</p><p class="l">max. proud jednoho řádku</p></div>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:16px">
+      <p class="l" style="font-weight:700">Proud z baterie podle show (mA, simulátor)</p>
+      <svg viewBox="0 0 760 540" width="760" height="540" role="img" aria-label="Proud z baterie pro každou show" font-family="Nunito Sans, Arial"><text x="0" y="40" font-size="32" fill="#1B1A1D">Breathe</text><rect x="220" y="14" width="246" height="36" rx="8" fill="#7A6F75"/><text x="478" y="42" font-size="32" font-weight="700" fill="#1B1A1D">82</text><text x="0" y="106" font-size="32" fill="#1B1A1D">Woven</text><rect x="220" y="80" width="381" height="36" rx="8" fill="#C8321C"/><text x="613" y="108" font-size="32" font-weight="700" fill="#1B1A1D">127</text><text x="0" y="172" font-size="32" fill="#1B1A1D">Embers</text><rect x="220" y="146" width="189" height="36" rx="8" fill="#C8321C"/><text x="421" y="174" font-size="32" font-weight="700" fill="#1B1A1D">63</text><text x="0" y="238" font-size="32" fill="#1B1A1D">Heartbeat</text><rect x="220" y="212" width="291" height="36" rx="8" fill="#C8321C"/><text x="523" y="240" font-size="32" font-weight="700" fill="#1B1A1D">97</text><text x="0" y="304" font-size="32" fill="#1B1A1D">Rain</text><rect x="220" y="278" width="354" height="36" rx="8" fill="#C8321C"/><text x="586" y="306" font-size="32" font-weight="700" fill="#1B1A1D">118</text><text x="0" y="370" font-size="32" fill="#1B1A1D">Plasma</text><rect x="220" y="344" width="456" height="36" rx="8" fill="#C8321C"/><text x="688" y="372" font-size="32" font-weight="700" fill="#1B1A1D">152</text><text x="0" y="436" font-size="32" fill="#1B1A1D">Flame</text><rect x="220" y="410" width="240" height="36" rx="8" fill="#C8321C"/><text x="472" y="438" font-size="32" font-weight="700" fill="#1B1A1D">80</text><text x="0" y="502" font-size="32" fill="#1B1A1D">Comet</text><rect x="220" y="476" width="171" height="36" rx="8" fill="#C8321C"/><text x="403" y="504" font-size="32" font-weight="700" fill="#1B1A1D">57</text></svg>
+    </div>
+  </div>
+  <aside>Spotřeba. Kolik LED každá show v průměru rozsvítí, jsem změřil v simulátoru. Typický večer, kdy jsem třicet procent času u někoho a jinak běží vzory, vychází v průměru na 94 miliampér. Z baterie s kapacitou 1 500 miliampérhodin to je zhruba třináct a půl hodiny.
+
+Firmware omezuje průměrný jas na čtvrtinu, takže proud nikdy nepřekročí 316 miliampér. Nejvyšší proud jednoho řádku v žádné show nepřesáhl 130 miliampér. To je důležité pro vedení po celé délce kravaty, které ještě čeká na navržení.</aside>
+</section>
+
+<!-- 7 · cost and price -->
+<section id="price" data-enter="cube-y" class="light" style="background:#FFD5C8; gap:36px">
+  <h2>Cena: 54 € při 1 000 kusech</h2>
+  <table class="cost">
+    <thead><tr><th>na kus</th><th>100 ks</th><th>1 000 ks</th><th>10 000 ks</th></tr></thead>
+    <tbody>
+      <tr><td>Součástky (LED = 69 %)</td><td>18,52 €</td><td>17,61 €</td><td>17,39 €</td></tr>
+      <tr><td>Flex DPS (odhad)</td><td>27,00 €</td><td>8,10 €</td><td>5,40 €</td></tr>
+      <tr><td>Osazení SMT, 2 strany</td><td>13,14 €</td><td>9,06 €</td><td>6,03 €</td></tr>
+      <tr><td>Baterie, látka, montáž, balení</td><td>18,57 €</td><td>7,83 €</td><td>5,90 €</td></tr>
+      <tr><td>Doprava, clo, NRE a certifikace</td><td>58,44 €</td><td>11,06 €</td><td>2,78 €</td></tr>
+      <tr style="background:#FFEDE6; font-weight:700"><td>Celkem v ČR</td><td>135,66 €</td><td>53,67 €</td><td>37,50 €</td></tr>
+    </tbody>
+  </table>
+  <div class="row">
+    <div class="card" data-fx="spark" style="flex:1; background:#FFF4EF; border-color:#F2B8A6"><p class="l" style="font-weight:700; letter-spacing:2px">VLASTNÍ E-SHOP</p><p class="num">139 €</p><p class="l">marže 49 % při 1 000 ks</p></div>
+    <div class="card" data-fx="spark" style="flex:1; background:#FFF4EF; border-color:#F2B8A6"><p class="l" style="font-weight:700; letter-spacing:2px">OBCHODY</p><p class="num">169 €</p><p class="l">marže 30 % při 1 000 ks</p></div>
+    <div class="card" data-fx="spark" style="flex:1; background:#1B1A1D; border-color:#1B1A1D; color:#F4EFEA"><p class="l" style="font-weight:700; letter-spacing:2px">FIRMY A AKCE</p><p class="num" style="color:#FF6A4E">85 €</p><p class="l">bez DPH, marže 37 %</p></div>
+  </div>
+  <aside>Cena. Při tisíci kusech vychází kravata v Česku na 54 eur. Součástky stojí asi 18 eur a 69 procent z toho jsou samotné LED. Ceny flexu, látky, baterie a montáže jsou zatím odhady; reálnou nabídku dá až JLC podle výrobních dat.
+
+Nejde o levnou hračku, cenou se kravata řadí k dražším hedvábným kravatám. Na vlastním e-shopu by stála 139 eur s marží 49 procent, v obchodech 169 eur. Firmám a pro akce by se prodávala za 85 eur bez DPH.</aside>
+</section>
+
+<!-- 8 · end -->
+<section id="end" data-enter="scan-mux" data-ambient="embers" class="dark">
+  <div style="flex:1; display:flex; flex-direction:column; gap:40px">
+    <h2 style="font-size:96px; line-height:1.1">Děkuji za pozornost</h2>
+    <p class="t" style="color:#E6DCD5">Hotové: schéma, rozmístění na flexu, kusovník, cena, výdrž a simulátor.</p>
+    <p class="l" style="color:#B8ADB4">Zbývá: vedení desky, nabídka JLC na flex a test ohybu budičů.</p>
+  </div>
+  <img data-fx="power" src="media/flex_vertical.png" alt="Celá flexibilní deska kravaty s LED" style="height:880px; width:auto">
+  <aside>Stav projektu: schéma je v KiCadu bez chyb, deska je rozmístěná na flexu bez kolizí a odpovídá schématu. Kusovník s aktuálními cenami, cenová analýza, výpočet výdrže a simulátor jsou hotové.
+
+Zbývá navrhnout vedení desky, hlavně šestnáct dlouhých řádkových vodičů, získat od JLC skutečnou nabídku na flex a vyzkoušet, jestli budiče na zadní straně vydrží ohýbání.
+
+Děkuji za pozornost, prostor pro dotazy.</aside>
+</section>
+
+<script>
+/* Live simulator: an iframe created on se:enter and removed on se:leave (RECIPES: Nudgy #simlive). The simulator is a
+   static file, so it loads straight from disk; ?sim= gives another URL. Keys stay with the deck (focus is handed back). */
+(() => {
+  const SIM = new URLSearchParams(location.search).get('sim') || 'sim/index.html';
+  const sec = document.getElementById('simlive'), box = sec.querySelector('.live-box'), off = sec.querySelector('.live-off');
+  let frame = null, leaveT = null;
+  sec.addEventListener('se:enter', () => {
+    clearTimeout(leaveT);
+    if (frame) return;
+    frame = document.createElement('iframe');
+    frame.src = SIM;
+    frame.addEventListener('load', () => off.classList.add('hide'));
+    box.appendChild(frame);
+  });
+  sec.addEventListener('se:leave', () => {
+    leaveT = setTimeout(() => { if (frame) { frame.remove(); frame = null; } off.classList.remove('hide'); }, 1500);
+  });
+  addEventListener('blur', () => setTimeout(() => { if (frame && document.activeElement === frame) { frame.blur(); window.focus(); } }, 0));
+})();
+</script>
+</body>
+</html>

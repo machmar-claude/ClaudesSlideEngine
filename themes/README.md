@@ -115,6 +115,7 @@ them when the slide is left, and the overview, the planner and `tools/check-deck
 | theme | what it is | adds | tags | demo |
 |---|---|---|---|---|
 | **core** (built into `engine.js`) | neutral: cube turns, iris, blinds, dissolve, zoom, vortex and the automatic element builds | 10 transitions, 13 effects, 2 dot styles | | [showcase](../demo/showcase/deck.html) |
+| [**ember**](ember/README.md) | An LED-tie look: a multiplexed-matrix wipe that writes the next slide scan line by scan line, a slide that grows out of the knot in the shape of a necktie, a spark that runs round a card and lights it, embers drifting up a dark slide, and stitches along a seam as progress. | 2 transitions, 1 effect, 1 ambient, 1 dot style | electronics, fashion, glow, led | [Ember-demo](../demo/Ember-demo/deck.html) |
 | [**pixelpine**](pixelpine/README.md) | Glowing LED matrix wipes and a twinkling LED background, from the PixelPine Christmas tree talk. | 4 transitions, 1 ambient, 1 dot style | electronics, glow, led | [PixelPine-demo](../demo/PixelPine-demo/deck.html) |
 | [**pmic**](pmic/README.md) | Power-management look: PWM pulse-train and power-up-sequence wipes, a converter-ringing settle effect, PCB traces with pulses and a staircase of rising supply rails as progress. | 2 transitions, 1 effect, 1 ambient, 1 dot style | electronics, pcb, power |  |
 | [**scope**](scope/README.md) | An oscilloscope look: a beam that writes the next slide, a CRT switch-off, a graticule with phosphor traces, SVG lines that draw themselves. | 2 transitions, 1 effect, 1 ambient | electronics, glow, measurement | [Impedance-demo](../demo/Impedance-demo/deck.html) |
@@ -140,8 +141,10 @@ them when the slide is left, and the overview, the planner and `tools/check-deck
 | `none` | core |
 | `pwm-wipe` | [pmic](pmic/README.md) |
 | `rail-sweep` | [pmic](pmic/README.md) |
+| `scan-mux` | [ember](ember/README.md) |
 | `scope-sweep` | [scope](scope/README.md) |
 | `steam` | [train](train/README.md) |
+| `tie-drop` | [ember](ember/README.md) |
 | `track` | [train](train/README.md) |
 | `train` | [train](train/README.md) |
 | `tunnel` | [train](train/README.md) |
@@ -166,6 +169,7 @@ them when the slide is left, and the overview, the planner and `tools/check-deck
 | `rise` | core |
 | `rows` | core |
 | `scan` | core |
+| `spark` | [ember](ember/README.md) |
 | `spin3d` | core |
 | `tilt` | core |
 | `tow` | [train](train/README.md) |
@@ -176,6 +180,7 @@ them when the slide is left, and the overview, the planner and `tools/check-deck
 
 | name | theme |
 |---|---|
+| `embers` | [ember](ember/README.md) |
 | `leds` | [pixelpine](pixelpine/README.md) |
 | `rails` | [pmic](pmic/README.md) |
 | `scope-grid` | [scope](scope/README.md) |
@@ -189,15 +194,17 @@ them when the slide is left, and the overview, the planner and `tools/check-deck
 | `dots` | core |
 | `led-dots` | [pixelpine](pixelpine/README.md) |
 | `rails-dots` | [pmic](pmic/README.md) |
+| `stitch-dots` | [ember](ember/README.md) |
 | `track` | [train](train/README.md) |
 
 ### By tag
 
 | tag | themes |
 |---|---|
-| electronics | [pixelpine](pixelpine/README.md), [pmic](pmic/README.md), [scope](scope/README.md) |
-| glow | [pixelpine](pixelpine/README.md), [scope](scope/README.md) |
-| led | [pixelpine](pixelpine/README.md) |
+| electronics | [ember](ember/README.md), [pixelpine](pixelpine/README.md), [pmic](pmic/README.md), [scope](scope/README.md) |
+| fashion | [ember](ember/README.md) |
+| glow | [ember](ember/README.md), [pixelpine](pixelpine/README.md), [scope](scope/README.md) |
+| led | [ember](ember/README.md), [pixelpine](pixelpine/README.md) |
 | measurement | [scope](scope/README.md) |
 | pcb | [pmic](pmic/README.md) |
 | playful | [train](train/README.md) |
